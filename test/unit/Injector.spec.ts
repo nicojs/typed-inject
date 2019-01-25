@@ -8,7 +8,7 @@ import { Scope } from '../../src/api/Scope';
 
 describe('InjectorImpl', () => {
 
-  describe('RootInjector', () => {
+  describe('AbstractInjector', () => {
 
     it('should be able to inject injector and target in a class', () => {
       // Arrange
@@ -102,7 +102,7 @@ describe('InjectorImpl', () => {
       expect(actualBaz.bar.foo.target).eq(Bar);
     });
 
-    it('should throw when no provider was found', () => {
+    it('should throw when no provider was found for a class', () => {
       class FooInjectable {
         constructor(public foo: string) {
         }
@@ -110,6 +110,15 @@ describe('InjectorImpl', () => {
       }
       expect(() => rootInjector.injectClass(FooInjectable as any)).throws(Exception,
         'Could not inject "FooInjectable". Inner error: No provider found for "foo"!');
+    });
+
+    it('should throw when no provider was found for a function', () => {
+      function foo(bar: string) {
+        return bar;
+      }
+      foo.inject = ['bar'];
+      expect(() => rootInjector.injectFunction(foo as any)).throws(Exception,
+        'Could not inject "foo". Inner error: No provider found for "bar"!');
     });
   });
 
@@ -127,6 +136,7 @@ describe('InjectorImpl', () => {
         .provideValue('foo', 42)
         .provideValue('bar', 'baz');
       expect(sut.resolve('bar')).eq('baz');
+      expect(sut.resolve('foo')).eq(42);
     });
   });
 
