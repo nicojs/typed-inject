@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/stryker-mutator/stryker.svg?branch=master)](https://travis-ci.org/stryker-mutator/stryker)
+[![Build Status](https://travis-ci.org/nicojs/typed-inject.svg?branch=master)](https://travis-ci.org/nicojs/typed-inject)
 [![NPM](https://img.shields.io/npm/dm/typed-inject.svg)](https://www.npmjs.com/package/typed-inject)
 [![Node version](https://img.shields.io/node/v/typed-inject.svg)](https://img.shields.io/node/v/stryker-utils.svg)
 [![Gitter](https://badges.gitter.im/stryker-mutator/stryker.svg)](https://gitter.im/stryker-mutator/stryker?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)

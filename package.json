@@ -14,11 +14,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stryker-mutator/stryker.git"
+    "url": "git+https://github.com/nicojs/typed-inject.git"
   },
   "keywords": [
-    "stryker",
-    "utils"
+    "typescript",
+    "dependency-injection",
+    "IoC",
+    "di",
+    "inject",
+    "type-safe"
   ],
   "publishConfig": {
     "access": "public"
@@ -26,9 +30,9 @@
   "author": "Nico Jansen <jansennico@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/stryker-mutator/stryker/issues"
+    "url": "https://github.com/nicojs/typed-inject/issues"
   },
-  "homepage": "https://github.com/stryker-mutator/stryker/tree/master/packages/typed-inject#readme",
+  "homepage": "https://github.com/nicojs/typed-inject/#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
