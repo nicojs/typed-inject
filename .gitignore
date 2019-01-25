@@ -1,0 +1,10 @@
+node_modules/
+.nyc_output/
+.stryker-temp/
+reports/
+src/**/*.d.ts
+test/**/*.d.ts
+src/**/*.map
+test/**/*.map
+src/**/*.js
+test/**/*.js

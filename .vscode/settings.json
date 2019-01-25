@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "src/**/*.map": true,
+    "test/**/*.map": true,
+    "src/**/*.d.ts": true,
+    "test/**/*.d.ts": true,
+    "test/**/*.js": {
+      "when": "$(basename).ts"
+    },
+    "src/**/*.js": {
+      "when": "$(basename).ts"
+    }
+  },
+  "tslint.autoFixOnSave": true
+}
