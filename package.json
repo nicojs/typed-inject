@@ -16,6 +16,9 @@
     "type": "git",
     "url": "git+https://github.com/nicojs/typed-inject.git"
   },
+  "engines": {
+    "node": ">=6"
+  },
   "keywords": [
     "typescript",
     "dependency-injection",
@@ -43,6 +46,6 @@
     "rimraf": "^2.6.3",
     "source-map-support": "^0.5.10",
     "tslint": "^5.12.1",
-    "typescript": "^3.3.0-rc"
+    "typescript": "^3.2.4"
   }
 }
