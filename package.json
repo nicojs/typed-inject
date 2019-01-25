@@ -8,8 +8,10 @@
     "start": "tsc -b -w",
     "prebuild": "rimraf \"+(src|test)/**/*+(.map|.js|.d.ts)\"",
     "build": "tsc -b",
+    "postbuild": "tslint -p tsconfig.lint.json",
     "pretest": "npm run build",
-    "test": "nyc --check-coverage --reporter=html --report-dir=reports/coverage --lines 90 --functions 95 --branches 80 npm run mocha",
+    "test": "npm run test:coverage",
+    "test:coverage": "nyc --check-coverage --reporter=html --report-dir=reports/coverage --lines 100 --functions 100 --branches 100 npm run mocha",
     "mocha": "mocha \"test/helpers/**/*.js\" \"test/unit/**/*.js\" && mocha --timeout 20000 \"test/helpers/**/*.js\" \"test/integration/**/*.js\" "
   },
   "repository": {
@@ -45,6 +47,12 @@
     "nyc": "^13.1.0",
     "rimraf": "^2.6.3",
     "source-map-support": "^0.5.10",
+    "stryker": "^0.34.0",
+    "stryker-api": "^0.23.0",
+    "stryker-html-reporter": "^0.17.0",
+    "stryker-mocha-framework": "^0.14.0",
+    "stryker-mocha-runner": "^0.16.0",
+    "stryker-typescript": "^0.17.0",
     "tslint": "^5.12.1",
     "typescript": "^3.2.4"
   }
