@@ -12,7 +12,14 @@
     "pretest": "npm run build",
     "test": "npm run test:coverage",
     "test:coverage": "nyc --check-coverage --reporter=html --report-dir=reports/coverage --lines 100 --functions 100 --branches 100 npm run mocha",
-    "mocha": "mocha \"test/helpers/**/*.js\" \"test/unit/**/*.js\" && mocha --timeout 20000 \"test/helpers/**/*.js\" \"test/integration/**/*.js\" "
+    "mocha": "mocha \"test/helpers/**/*.js\" \"test/unit/**/*.js\" && mocha --timeout 20000 \"test/helpers/**/*.js\" \"test/integration/**/*.js\"",
+    "preversion": "npm test",
+    "version": "npm run generate-changelog",
+    "postversion": "npm publish && git push && git push --tags",
+    "generate-changelog": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
+    "release:patch": "npm version patch -m \"chore(release): %s\"",
+    "release:minor": "npm version minor -m \"chore(release): %s\"",
+    "release:major": "npm version major -m \"chore(release): %s\""
   },
   "repository": {
     "type": "git",
@@ -43,6 +50,7 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.18",
     "chai": "^4.2.0",
+    "conventional-changelog-cli": "^2.0.11",
     "mocha": "^5.2.0",
     "nyc": "^13.1.0",
     "rimraf": "^2.6.3",
