@@ -120,6 +120,18 @@ describe('InjectorImpl', () => {
       expect(() => rootInjector.injectFunction(foo as any)).throws(Exception,
         'Could not inject "foo". Inner error: No provider found for "bar"!');
     });
+
+    it('should be able to provide an Injector for a partial context', () => {
+      class Foo {
+        constructor(public injector: Injector<{ bar: number }>) { }
+        public static inject = tokens(INJECTOR_TOKEN);
+      }
+      const barBazInjector = rootInjector
+        .provideValue('bar', 42)
+        .provideValue('baz', 'qux');
+      const actualFoo = barBazInjector.injectClass(Foo);
+      expect(actualFoo.injector).eq(barBazInjector);
+    });
   });
 
   describe('ValueInjector', () => {
