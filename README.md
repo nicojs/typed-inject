@@ -11,6 +11,8 @@ A tiny, 100% type safe dependency injection framework for TypeScript. You can in
 
 _If you are new to 'Dependency Injection'/'Inversion of control', please read up on it [in this blog article about it](https://medium.com/@samueleresca/inversion-of-control-and-dependency-injection-in-typescript-3040d568aabe)_
 
+_If you want to know more about how typed-inject works, please read [my blog article about it](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96)_
+
 ## 🗺️ Installation
 
 Install typed-inject locally within your project folder, like so:
@@ -139,6 +141,8 @@ Type safe dependency injection works by combining awesome TypeScript features. S
 * [Mapped types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#mapped-types)
 * [Conditional types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#conditional-types)
 * [Rest parameters with tuple types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#rest-parameters-with-tuple-types)
+
+Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96) if you want to know how this works.
 
 ## 📖 API reference
 
