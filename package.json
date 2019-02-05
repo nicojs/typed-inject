@@ -6,7 +6,8 @@
   "typings": "src/index.d.ts",
   "scripts": {
     "start": "tsc -b -w",
-    "prebuild": "rimraf \"+(src|test)/**/*+(.map|.js|.d.ts)\"",
+    "clean": "rimraf \"+(src|test)/**/*+(.map|.js|.d.ts)\"",
+    "prebuild": "npm run clean",
     "build": "tsc -b",
     "postbuild": "tslint -p tsconfig.lint.json",
     "pretest": "npm run build",
@@ -62,6 +63,6 @@
     "stryker-mocha-runner": "^0.16.0",
     "stryker-typescript": "^0.17.0",
     "tslint": "^5.12.1",
-    "typescript": "^3.2.2"
+    "typescript": "^3.3.1"
   }
 }

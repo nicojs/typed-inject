@@ -1,7 +1,6 @@
 import { Scope } from './api/Scope';
 import { InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken';
 import { InjectableClass, InjectableFunction, Injectable } from './api/Injectable';
-import { CorrespondingType } from './api/CorrespondingType';
 import { Injector } from './api/Injector';
 import { Exception } from './Exception';
 
@@ -50,7 +49,16 @@ abstract class AbstractInjector<TContext> implements Injector<TContext>  {
 
   private resolveParametersToInject<Tokens extends InjectionToken<TContext>[]>(injectable: Injectable<TContext, any, Tokens>, target?: Function): any[] {
     const tokens: InjectionToken<TContext>[] = (injectable as any).inject || [];
-    return tokens.map(key => this.resolve(key, injectable, target));
+    return tokens.map(key => {
+      switch (key) {
+        case TARGET_TOKEN:
+          return target as any;
+        case INJECTOR_TOKEN:
+          return this as any;
+        default:
+          return this.resolve(key, injectable);
+      }
+    });
   }
 
   public provideValue<Token extends string, R>(token: Token, value: R): AbstractInjector<{ [k in Token]: R; } & TContext> {
@@ -66,23 +74,17 @@ abstract class AbstractInjector<TContext> implements Injector<TContext>  {
     return new FactoryInjector(this, token, scope, factory);
   }
 
-  public resolve<Token extends InjectionToken<TContext>>(token: Token, providedIn?: Function, target?: Function): CorrespondingType<TContext, Token> {
-    switch (token) {
-      case TARGET_TOKEN:
-        return target as any;
-      case INJECTOR_TOKEN:
-        return this as any;
-      default:
-        return this.resolveInternal(token, providedIn);
-    }
+  public resolve<Token extends keyof TContext>(token: Token, providedIn?: Function): TContext[Token] {
+    return this.resolveInternal(token, providedIn);
+
   }
 
-  protected abstract resolveInternal<Token extends InjectionToken<TContext>>(token: Token, target?: Function): CorrespondingType<TContext, Token>;
+  protected abstract resolveInternal<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token];
 }
 
 class RootInjector extends AbstractInjector<{}> {
-  public resolveInternal<Token extends InjectionToken<{}>>(token: Token)
-    : CorrespondingType<{}, Token> {
+  public resolveInternal(token: never)
+    : never {
     throw new Error(`No provider found for "${token}"!.`);
   }
 }
@@ -95,8 +97,8 @@ class ValueInjector<TParentContext, R, Token extends string> extends AbstractInj
     super();
   }
 
-  protected resolveInternal<SearchToken extends InjectionToken<ChildContext<TParentContext, R, Token>>>(token: SearchToken, target: Function)
-    : CorrespondingType<ChildContext<TParentContext, R, Token>, SearchToken> {
+  protected resolveInternal<SearchToken extends keyof ChildContext<TParentContext, R, Token>>(token: SearchToken, target: Function)
+    : ChildContext<TParentContext, R, Token>[SearchToken] {
     if (token === this.token) {
       return this.value as any;
     } else {
@@ -115,8 +117,8 @@ abstract class AbstractCachedInjector<TParentContext, R, Token extends string> e
     super();
   }
 
-  protected resolveInternal<SearchToken extends InjectionToken<ChildContext<TParentContext, R, Token>>>(token: SearchToken, target: Function | undefined)
-    : CorrespondingType<ChildContext<TParentContext, R, Token>, SearchToken> {
+  protected resolveInternal<SearchToken extends keyof ChildContext<TParentContext, R, Token>>(token: SearchToken, target: Function | undefined)
+    : ChildContext<TParentContext, R, Token>[SearchToken] {
     if (token === this.token) {
       if (this.cached) {
         return this.cached.value as any;
