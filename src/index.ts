@@ -5,3 +5,4 @@ export * from './api/Injector';
 export * from './api/Scope';
 export * from './InjectorImpl';
 export * from './tokens';
+export * from './api/Disposable';

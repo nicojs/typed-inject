@@ -11,4 +11,5 @@ export interface Injector<TContext = {}> {
     : Injector<{ [k in Token]: R } & TContext>;
   provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(token: Token, factory: InjectableFunction<TContext, R, Tokens>, scope?: Scope)
     : Injector<{ [k in Token]: R } & TContext>;
+  dispose(): void;
 }

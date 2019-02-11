@@ -98,27 +98,6 @@ const myService = appInjector.injectClass(MyService);
 
 The error messages are a bit cryptic at times, but it sure is better than running into them at runtime.
 
-## ✨ Magic tokens
-
-Any `Injector` instance can always inject the following tokens:
-
-| Token name | Token value | Description |
-| - | - | - | 
-| `INJECTOR_TOKEN` | `'$injector'` | Injects the current injector |
-| `TARGET_TOKEN` | `'$target'` | The class or function in which the current values is injected, or `undefined` if resolved directly |  
-
-An example:
-
-```ts
-import { rootInjector, Injector, tokens, TARGET_TOKEN, INJECTOR_TOKEN } from 'typed-inject';
-
-class Foo {
-    constructor(injector: Injector<{}>, target: Function | undefined) {}
-    static inject = tokens(INJECTOR_TOKEN, TARGET_TOKEN);
-}
-
-const foo = rootInjector.inject(Foo);
-```
 
 ## 💭 Motivation
 
@@ -144,6 +123,131 @@ Type safe dependency injection works by combining awesome TypeScript features. S
 
 Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96) if you want to know how this works.
 
+## 👶 Creating child injectors
+
+The `Injector` interface is responsible for injecting classes of functions. However, `typed-inject` only comes with one implementation: the `rootInjector`. It does not provide any dependencies (expect for [magic tokens](#magic-tokens)).
+
+In order to do anything useful with the `rootInjector`, you'll need to create child injectors. This what you do with the `provideXXX` methods.
+
+```ts
+import { rootInjector, tokens } from 'typed-inject';
+function barFactory(foo: number){ return foo + 1};
+barFactory.inject = tokens('foo');
+class Baz {
+  constructor(bar: number){ console.log(`bar is: ${bar}`)};
+  static inject = tokens('bar');
+}
+
+const childInjector = rootInjector
+  .provideValue('foo', 42)
+  .provideFactory('bar', barFactory)
+  .provideClass('baz', Baz);
+```
+
+In the example above, a child injector is created. It can provide values for the tokens `'foo'`, `'bar'` and `'baz'`. You can create as many child injectors as you want.
+
+The `rootInjector` always remains stateless. So don't worry about reusing it in your tests or reusing it for different parts of your application. However,
+any ChildInjector _is stateful_. For example, it can [cache the injected value](#control-lifecycle) or [keep track of stuff to dispose](#disposing-provided-stuff)
+
+## ♻ Control lifecycle
+
+You can determine the lifecycle of dependencies with the third `Scope` parameter of `provideFactory` and `provideClass` methods.
+
+```ts
+function loggerFactory(target: Function | null){
+  return getLogger((target && target.name) || 'UNKNOWN');
+}
+loggerFactory.inject('target');
+class Foo {
+  constructor(public log: Logger) { log.info('Foo created'); }
+  static inject = tokens('log');
+}
+
+const fooProvider = injector
+  .provideFactory('log', loggerFactory, Scope.Transient)
+  .provideClass('foo', Foo, Scope.Singleton);
+const foo = fooProvider.resolve('foo');
+const fooCopy = fooProvider.resolve('foo');
+const log = fooProvider.resolve('log');
+console.log(foo === fooCopy); // => true
+console.log(log === foo.log); // => false
+```
+
+A scope has 2 possible values. 
+
+* `Scope.Singleton` (default value)  
+Use `Scope.Singleton` to enable caching. Every time the dependency needs to be provided by the injector, the same instance is returned. Other injectors will still create their own instances, so it's only a `Singleton` for the specific injector (and child injectors created from it). In other words, 
+the instance will be _scoped to the `Injector`_
+* `Scope.Transient`  
+Use `Scope.Transient` to completely disable cashing. You'll always get fresh instances.
+
+## 🚮 Disposing provided stuff
+
+As `typed-inject` is responsible for creating (providing) your dependencies, it only makes sense it is also responsible for the disposing of them. 
+
+Any `Injector` has a `dispose` method. If you call it, the injector in turn will call `dispose` on any instance that was ever created from it (if it has one). 
+
+```ts
+import { rootInjector } from 'typed-inject';
+
+class Foo { 
+  constructor() { console.log('Foo created'); }
+  dispose(){ console.log('Foo disposed');} 
+}
+const fooProvider = rootInjector.provideClass('foo', Foo);
+fooProvider.resolve('foo'); // => "Foo created"
+fooProvider.dispose(); // => "Foo disposed"
+fooProvider.resolve('foo'); // Error: Injector already disposed
+```
+
+To help you implementing the `dispose` method correctly, `typed-inject` exports the `Disposable` interface for convenience:
+
+```ts
+import { Disposable } from 'typed-inject';
+class Foo implements Disposable { 
+  dispose(){ } 
+}
+```
+
+Using `dispose` on an injector will automatically dispose it's parent injectors as well:
+
+```ts
+import { rootInjector } from 'typed-inject';
+class Foo { }
+class Bar { }
+const fooProvider = rootInjector.provideClass('foo', Foo);
+const barProvider = fooProvider.provideClass('bar', Bar);
+barProvider.dispose(); // => fooProvider is also disposed!
+fooProvider.resolve('foo'); // => Error: Injector already disposed
+```
+
+Disposing of provided values is done in order of parent first. Do they are disposed in the order of respective `providedXXX` calls.
+
+Any instance created with `injectClass` or `injectFactory` will _not_ be disposed when `dispose` is called, as you were responsible for creating it. In the same vain, anything provided as a value with `providedValue` will also _not_ be disposed when `dispose` is called on it's injector.
+
+## ✨ Magic tokens
+
+Any `Injector` instance can always inject the following tokens:
+
+| Token name | Token value | Description |
+| - | - | - | 
+| `INJECTOR_TOKEN` | `'$injector'` | Injects the current injector |
+| `TARGET_TOKEN` | `'$target'` | The class or function in which the current values is injected, or `undefined` if resolved directly |  
+
+An example:
+
+```ts
+import { rootInjector, Injector, tokens, TARGET_TOKEN, INJECTOR_TOKEN } from 'typed-inject';
+
+class Foo {
+    constructor(injector: Injector<{}>, target: Function | undefined) {}
+    static inject = tokens(INJECTOR_TOKEN, TARGET_TOKEN);
+}
+
+const foo = rootInjector.inject(Foo);
+```
+
+
 ## 📖 API reference
 
 _Note: some generic parameters are omitted for clarity._
@@ -154,7 +258,7 @@ The `Injector<TContext>` is the core interface of typed-inject. It provides the 
 
 The `TContext` generic arguments is a [lookup type](https://blog.mariusschulz.com/2017/01/06/typescript-2-1-keyof-and-lookup-types). The keys in this type are the tokens that can be injected, the values are the exact types of those tokens. For example, if `TContext extends { foo: string, bar: number }`, you can let a token `'foo'` be injected of type `string`, and a token `'bar'` of type `number`.
 
-Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#magic-tokens)) Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. 
+Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#magic-tokens)). Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#creating-child-injectors) for more information.
 
 Don't worry about reusing the `rootInjector` in your application. It is stateless and read-only, so safe for concurrent use.
 
@@ -227,6 +331,14 @@ Create a child injector that can provide a value using instances of `Class` for 
 
 Scope is also supported here, for more info, see `provideFactory`.
 
+#### `injector.dispose()`
+
+Use `dispose` to explicitly dispose the `injector`. It will in turn call `dispose` on it's parent injector as well as calling `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). 
+
+After a child injector is disposed, you cannot us it any more. Any attempt to use it will result in a `Injector already disposed` error.
+
+The `rootInjector` will never be disposed.
+
 ### `Scope`
 
 The `Scope` enum indicates the scope of a provided injectable (class or factory). Possible values: `Scope.Transient` (new injection per resolve) or `Scope.Singleton` (inject once, and reuse values). It generally defaults to `Singleton`. 
@@ -259,6 +371,20 @@ In other words, it makes sure that the `inject` tokens is corresponding with the
 ### `InjectableFunction<TContext, R, Tokens extends InjectionToken<TContext>[]>`
 
 Comparable to `InjectableClass`, but for (non-constructor) functions.
+
+### `Disposable`
+
+You can implement the `Disposable` interface in your dependencies. It looks like this:
+
+```ts
+interface Disposable { 
+  dispose(): void;
+}
+```
+
+With this, you can let the `Injector` call [your dispose method](#disposing-provided-stuff). 
+
+_Note:_ This is just a convenience interface. Due to TypeScripts structural typing system `typed-inject` calls your `dispose` method without you having to explicitly implement it.
 
 ## 🤝 Commendation
 
