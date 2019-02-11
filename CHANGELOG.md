@@ -1,3 +1,12 @@
+## [0.2.1](https://github.com/nicojs/typed-inject/compare/v0.2.0...v0.2.1) (2019-02-11)
+
+
+### Features
+
+* **dispose:** Add functionality to explicit disposing of dependencies ([#1](https://github.com/nicojs/typed-inject/issues/1)) ([02b4946](https://github.com/nicojs/typed-inject/commit/02b4946))
+
+
+
 # [0.2.0](https://github.com/nicojs/typed-inject/compare/v0.1.1...v0.2.0) (2019-02-05)
 
 
