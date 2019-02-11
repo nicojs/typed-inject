@@ -147,7 +147,7 @@ const childInjector = rootInjector
 In the example above, a child injector is created. It can provide values for the tokens `'foo'`, `'bar'` and `'baz'`. You can create as many child injectors as you want.
 
 The `rootInjector` always remains stateless. So don't worry about reusing it in your tests or reusing it for different parts of your application. However,
-any ChildInjector _is stateful_. For example, it can [cache the injected value](#control-lifecycle) or [keep track of stuff to dispose](#disposing-provided-stuff)
+any ChildInjector _is stateful_. For example, it can [cache the injected value](#-control-lifecycle) or [keep track of stuff to dispose](#-disposing-provided-stuff)
 
 ## ♻ Control lifecycle
 
@@ -260,7 +260,7 @@ The `Injector<TContext>` is the core interface of typed-inject. It provides the 
 
 The `TContext` generic arguments is a [lookup type](https://blog.mariusschulz.com/2017/01/06/typescript-2-1-keyof-and-lookup-types). The keys in this type are the tokens that can be injected, the values are the exact types of those tokens. For example, if `TContext extends { foo: string, bar: number }`, you can let a token `'foo'` be injected of type `string`, and a token `'bar'` of type `number`.
 
-Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#-magic-tokens)). Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#creating-child-injectors) for more information.
+Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#-magic-tokens)). Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#-creating-child-injectors) for more information.
 
 Don't worry about reusing the `rootInjector` in your application. It is stateless and read-only, so safe for concurrent use.
 
