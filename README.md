@@ -125,7 +125,7 @@ Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-
 
 ## 👶 Creating child injectors
 
-The `Injector` interface is responsible for injecting classes of functions. However, `typed-inject` only comes with one implementation: the `rootInjector`. It does not provide any dependencies (expect for [magic tokens](#magic-tokens)).
+The `Injector` interface is responsible for injecting classes of functions. However, `typed-inject` only comes with one implementation: the `rootInjector`. It does not provide any dependencies (expect for [magic tokens](#-magic-tokens)).
 
 In order to do anything useful with the `rootInjector`, you'll need to create child injectors. This what you do with the `provideXXX` methods.
 
@@ -183,6 +183,8 @@ Use `Scope.Transient` to completely disable cashing. You'll always get fresh ins
 
 ## 🚮 Disposing provided stuff
 
+Memory in JavaScript is garbage collected, so usually we don't care about cleaning up after ourselves. However, there might be a need to explicit clean up. For example removing a temp folder, or killing a child process.
+
 As `typed-inject` is responsible for creating (providing) your dependencies, it only makes sense it is also responsible for the disposing of them. 
 
 Any `Injector` has a `dispose` method. If you call it, the injector in turn will call `dispose` on any instance that was ever created from it (if it has one). 
@@ -221,9 +223,9 @@ barProvider.dispose(); // => fooProvider is also disposed!
 fooProvider.resolve('foo'); // => Error: Injector already disposed
 ```
 
-Disposing of provided values is done in order of parent first. Do they are disposed in the order of respective `providedXXX` calls.
+Disposing of provided values is done in order of parent first. So they are disposed in the order of respective `providedXXX` calls.
 
-Any instance created with `injectClass` or `injectFactory` will _not_ be disposed when `dispose` is called, as you were responsible for creating it. In the same vain, anything provided as a value with `providedValue` will also _not_ be disposed when `dispose` is called on it's injector.
+Any instance created with `injectClass` or `injectFactory` will _not_ be disposed when `dispose` is called. You were responsible for creating it, so you are also responsible for the disposing of it. In the same vain, anything provided as a value with `providedValue` will also _not_ be disposed when `dispose` is called on it's injector.
 
 ## ✨ Magic tokens
 
@@ -258,7 +260,7 @@ The `Injector<TContext>` is the core interface of typed-inject. It provides the 
 
 The `TContext` generic arguments is a [lookup type](https://blog.mariusschulz.com/2017/01/06/typescript-2-1-keyof-and-lookup-types). The keys in this type are the tokens that can be injected, the values are the exact types of those tokens. For example, if `TContext extends { foo: string, bar: number }`, you can let a token `'foo'` be injected of type `string`, and a token `'bar'` of type `number`.
 
-Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#magic-tokens)). Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#creating-child-injectors) for more information.
+Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#-magic-tokens)). Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#creating-child-injectors) for more information.
 
 Don't worry about reusing the `rootInjector` in your application. It is stateless and read-only, so safe for concurrent use.
 
@@ -382,7 +384,7 @@ interface Disposable {
 }
 ```
 
-With this, you can let the `Injector` call [your dispose method](#disposing-provided-stuff). 
+With this, you can let the `Injector` call [your dispose method](#-disposing-provided-stuff). 
 
 _Note:_ This is just a convenience interface. Due to TypeScripts structural typing system `typed-inject` calls your `dispose` method without you having to explicitly implement it.
 
