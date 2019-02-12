@@ -1,3 +1,7 @@
+# [1.0.0](https://github.com/nicojs/typed-inject/compare/v0.2.1...v1.0.0) (2019-02-12)
+
+
+
 ## [0.2.1](https://github.com/nicojs/typed-inject/compare/v0.2.0...v0.2.1) (2019-02-11)
 
 
