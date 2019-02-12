@@ -49,24 +49,24 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.18",
+    "@types/node": "^11.9.0",
     "@types/sinon": "^7.0.5",
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "conventional-changelog-cli": "^2.0.11",
     "mocha": "^5.2.0",
-    "nyc": "^13.1.0",
+    "nyc": "^13.2.0",
     "rimraf": "^2.6.3",
     "sinon": "^7.2.3",
     "sinon-chai": "^3.3.0",
     "source-map-support": "^0.5.10",
-    "stryker": "^0.34.0",
-    "stryker-api": "^0.23.0",
-    "stryker-html-reporter": "^0.17.0",
-    "stryker-mocha-framework": "^0.14.0",
-    "stryker-mocha-runner": "^0.16.0",
-    "stryker-typescript": "^0.17.0",
+    "stryker": "^0.35.0",
+    "stryker-api": "^0.24.0",
+    "stryker-html-reporter": "^0.18.0",
+    "stryker-mocha-framework": "^0.15.0",
+    "stryker-mocha-runner": "^0.17.0",
+    "stryker-typescript": "^0.18.0",
     "tslint": "^5.12.1",
-    "typescript": "^3.3.1"
+    "typescript": "^3.3.3"
   }
 }
