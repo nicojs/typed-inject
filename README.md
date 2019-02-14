@@ -125,7 +125,7 @@ Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-
 
 ## 👶 Creating child injectors
 
-The `Injector` interface is responsible for injecting classes of functions. However, `typed-inject` only comes with one implementation: the `rootInjector`. It does not provide any dependencies (expect for [magic tokens](#-magic-tokens)).
+The `Injector` interface is responsible for injecting classes or functions. However, `typed-inject` only comes with one implementation: the `rootInjector`. It can't provide any dependencies directly (expect for [magic tokens](#-magic-tokens)).
 
 In order to do anything useful with the `rootInjector`, you'll need to create child injectors. This what you do with the `provideXXX` methods.
 
