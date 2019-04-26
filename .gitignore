@@ -8,3 +8,4 @@ src/**/*.map
 test/**/*.map
 src/**/*.js
 test/**/*.js
+*.tsbuildinfo

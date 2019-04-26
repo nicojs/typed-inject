@@ -1,10 +1,9 @@
 language: node_js
 node_js:
 - node
-- '6'
+- '8'
 install: npm ci
-before_install:
-- if [[ `npm -v` = 3* ]]; then npm i -g npm@5; fi
 sudo: 'false'
 before_script:
 - npm ls
+script: npm run all
