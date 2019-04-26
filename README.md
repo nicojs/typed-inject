@@ -223,7 +223,25 @@ barProvider.dispose(); // => fooProvider is also disposed!
 fooProvider.resolve('foo'); // => Error: Injector already disposed
 ```
 
-Disposing of provided values is done in order of parent first. So they are disposed in the order of respective `providedXXX` calls.
+Disposing of provided values is done in order of child first. So they are disposed in the opposite order of respective `providedXXX` calls (like a stack):
+
+```ts
+import { rootInjector, tokens } from 'typed-inject';
+
+class Foo { dispose(){ console.log('Foo disposed');} }
+class Bar { dispose(){ console.log('Bar disposed');} }
+class Baz { 
+  static inject = tokens('foo', 'bar');
+  constructor(public foo: Foo, public bar: Bar) { }
+}
+rootInjector
+  .provideClass('foo', Foo)
+  .provideClass('bar', Bar)
+  .injectClass(Baz);
+fooProvider.dispose(); 
+// => "Foo disposed"
+// => "Bar disposed",
+```
 
 Any instance created with `injectClass` or `injectFactory` will _not_ be disposed when `dispose` is called. You were responsible for creating it, so you are also responsible for the disposing of it. In the same vain, anything provided as a value with `providedValue` will also _not_ be disposed when `dispose` is called on it's injector.
 
@@ -335,7 +353,9 @@ Scope is also supported here, for more info, see `provideFactory`.
 
 #### `injector.dispose()`
 
-Use `dispose` to explicitly dispose the `injector`. It will in turn call `dispose` on it's parent injector as well as calling `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). 
+Use `dispose` to explicitly dispose the `injector`. It will in turn `dispose` any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). After that, it will `dispose` it's parent injector as well.
+
+_Note: this behavior changed since v2. Before v2, the parent injector was always disposed before the child injector._
 
 After a child injector is disposed, you cannot us it any more. Any attempt to use it will result in a `Injector already disposed` error.
 

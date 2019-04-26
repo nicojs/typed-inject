@@ -146,9 +146,9 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
 
   public dispose() {
     if (!this.isDisposed) {
-      this.parent.dispose();
       this.isDisposed = true;
       this.disposables.forEach(disposable => disposable.dispose());
+      this.parent.dispose();
     }
   }
 

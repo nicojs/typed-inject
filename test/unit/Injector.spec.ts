@@ -311,28 +311,28 @@ describe('InjectorImpl', () => {
       expect(baz.foo.dispose).called;
     });
 
-    it('should dispose dependencies in correct order', () => {
-      class Foo { public dispose = sinon.stub(); }
-      class Bar { public dispose = sinon.stub(); }
-      class Baz {
-        constructor(public readonly bar: Bar, public readonly foo: Foo) { }
-        public static inject = tokens('bar', 'foo');
+    it('should dispose dependencies in correct order (child first)', () => {
+      class Grandparent { public dispose = sinon.stub(); }
+      class Parent { public dispose = sinon.stub(); }
+      class Child {
+        constructor(public readonly parent: Parent, public readonly grandparent: Grandparent) { }
+        public static inject = tokens('parent', 'grandparent');
         public dispose = sinon.stub();
       }
       const bazProvider = rootInjector
-        .provideClass('foo', Foo, Scope.Transient)
-        .provideClass('bar', Bar)
-        .provideClass('baz', Baz);
-      const baz = bazProvider.resolve('baz');
-      const newFoo = bazProvider.resolve('foo');
+        .provideClass('grandparent', Grandparent, Scope.Transient)
+        .provideClass('parent', Parent)
+        .provideClass('child', Child);
+      const child = bazProvider.resolve('child');
+      const newGrandparent = bazProvider.resolve('grandparent');
 
       // Act
       bazProvider.dispose();
 
       // Assert
-      expect(baz.foo.dispose).calledBefore(baz.bar.dispose);
-      expect(newFoo.dispose).calledBefore(baz.bar.dispose);
-      expect(baz.bar.dispose).calledBefore(baz.dispose);
+      expect(child.parent.dispose).calledBefore(child.grandparent.dispose);
+      expect(child.parent.dispose).calledBefore(newGrandparent.dispose);
+      expect(child.dispose).calledBefore(child.parent.dispose);
     });
 
     it('should not dispose injected classes or functions', () => {
