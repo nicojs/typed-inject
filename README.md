@@ -187,7 +187,7 @@ Memory in JavaScript is garbage collected, so usually we don't care about cleani
 
 As `typed-inject` is responsible for creating (providing) your dependencies, it only makes sense it is also responsible for the disposing of them. 
 
-Any `Injector` has a `dispose` method. If you call it, the injector in turn will call `dispose` on any instance that was ever created from it (if it has one). 
+Any `Injector` has a `dispose` method. If you call it, the injector in turn will call `dispose` on any instance that he provided (if it has one). 
 
 ```ts
 import { rootInjector } from 'typed-inject';
@@ -198,7 +198,7 @@ class Foo {
 }
 const fooProvider = rootInjector.provideClass('foo', Foo);
 fooProvider.resolve('foo'); // => "Foo created"
-fooProvider.dispose(); // => "Foo disposed"
+await fooProvider.dispose() // => "Foo disposed"
 fooProvider.resolve('foo'); // Error: Injector already disposed
 ```
 
@@ -211,6 +211,29 @@ class Foo implements Disposable {
 }
 ```
 
+Dispose methods are typically `async`. For example, you might need to clean up some files or get rid of a child process. 
+If you do so, your dependencies should return a promise from the `dispose` method. In turn, calling `dispose` on an `Injector` is always async.
+You are responsible for the correct handling of the async behavior of the `dispose` method.
+This means you should either `await` the result or attach `then`/`catch` handlers.
+
+```ts
+import { rootInjector, Disposable } from 'typed-inject';
+class Foo implements Disposable { 
+  dispose(): Promise<void> { 
+    return Promise.resolve();
+  } 
+}
+const fooProvider = rootInjector
+  .provideClass('foo', Foo);
+const foo = fooProvider.resolve('foo');
+async function disposeFoo() {
+  await fooProvider.dispose();
+}
+disposeFoo()
+  .then(() => console.log('Foo disposed'))
+  .catch(err => console.error('Foo disposal resulted in an error', err);
+```
+
 Using `dispose` on an injector will automatically dispose it's parent injectors as well:
 
 ```ts
@@ -219,7 +242,7 @@ class Foo { }
 class Bar { }
 const fooProvider = rootInjector.provideClass('foo', Foo);
 const barProvider = fooProvider.provideClass('bar', Bar);
-barProvider.dispose(); // => fooProvider is also disposed!
+await barProvider.dispose(); // => fooProvider is also disposed!
 fooProvider.resolve('foo'); // => Error: Injector already disposed
 ```
 
@@ -238,7 +261,7 @@ rootInjector
   .provideClass('foo', Foo)
   .provideClass('bar', Bar)
   .injectClass(Baz);
-fooProvider.dispose(); 
+await fooProvider.dispose(); 
 // => "Foo disposed"
 // => "Bar disposed",
 ```
@@ -351,15 +374,17 @@ Create a child injector that can provide a value using instances of `Class` for 
 
 Scope is also supported here, for more info, see `provideFactory`.
 
-#### `injector.dispose()`
+#### `injector.dispose(): Promise<void>`
 
-Use `dispose` to explicitly dispose the `injector`. It will in turn `dispose` any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). After that, it will `dispose` it's parent injector as well.
+Use `dispose` to explicitly dispose the `injector`. It will call  `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). It will also await any promise that might have been returned by `dispose`. After that, it will `dispose` it's parent injector as well.
 
 _Note: this behavior changed since v2. Before v2, the parent injector was always disposed before the child injector._
 
 After a child injector is disposed, you cannot us it any more. Any attempt to use it will result in a `Injector already disposed` error.
 
 The `rootInjector` will never be disposed.
+
+Disposing of your dependencies is always done asynchronously. You should take care to handle this appropriately. The best way to do that is to `await` the result of `myInjector.dispose()`. 
 
 ### `Scope`
 
