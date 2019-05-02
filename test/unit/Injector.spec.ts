@@ -7,6 +7,7 @@ import { Exception } from '../../src/Exception';
 import { Scope } from '../../src/api/Scope';
 import * as sinon from 'sinon';
 import { Disposable } from '../../src/api/Disposable';
+import { Task, tick } from '../helpers/Task';
 
 describe('InjectorImpl', () => {
 
@@ -261,7 +262,7 @@ describe('InjectorImpl', () => {
 
   describe('dispose', () => {
 
-    it('should dispose all disposable singleton dependencies', () => {
+    it('should dispose all disposable singleton dependencies', async () => {
       // Arrange
       class Foo {
         public dispose2 = sinon.stub();
@@ -281,7 +282,7 @@ describe('InjectorImpl', () => {
         .injectClass(Baz);
 
       // Act
-      bazInjector.dispose();
+      await bazInjector.dispose();
 
       // Assert
       expect(baz.bar.dispose).called;
@@ -290,7 +291,7 @@ describe('InjectorImpl', () => {
       expect(baz.bar.dispose3).not.called;
     });
 
-    it('should also dispose transient dependencies', () => {
+    it('should also dispose transient dependencies', async () => {
       class Foo { public dispose = sinon.stub(); }
       function barFactory(): Disposable { return { dispose: sinon.stub() }; }
       class Baz {
@@ -304,14 +305,14 @@ describe('InjectorImpl', () => {
         .injectClass(Baz);
 
       // Act
-      bazInjector.dispose();
+      await bazInjector.dispose();
 
       // Assert
       expect(baz.bar.dispose).called;
       expect(baz.foo.dispose).called;
     });
 
-    it('should dispose dependencies in correct order (child first)', () => {
+    it('should dispose dependencies in correct order (child first)', async () => {
       class Grandparent { public dispose = sinon.stub(); }
       class Parent { public dispose = sinon.stub(); }
       class Child {
@@ -327,7 +328,7 @@ describe('InjectorImpl', () => {
       const newGrandparent = bazProvider.resolve('grandparent');
 
       // Act
-      bazProvider.dispose();
+      await bazProvider.dispose();
 
       // Assert
       expect(child.parent.dispose).calledBefore(child.grandparent.dispose);
@@ -335,25 +336,25 @@ describe('InjectorImpl', () => {
       expect(child.dispose).calledBefore(child.parent.dispose);
     });
 
-    it('should not dispose injected classes or functions', () => {
+    it('should not dispose injected classes or functions', async () => {
       class Foo { public dispose = sinon.stub(); }
       function barFactory(): Disposable { return { dispose: sinon.stub() }; }
       const foo = rootInjector.injectClass(Foo);
       const bar = rootInjector.injectFunction(barFactory);
-      rootInjector.dispose();
+      await rootInjector.dispose();
       expect(foo.dispose).not.called;
       expect(bar.dispose).not.called;
     });
 
-    it('should not dispose providedValues', () => {
+    it('should not dispose providedValues', async () => {
       const disposable: Disposable = { dispose: sinon.stub() };
       const disposableProvider = rootInjector.provideValue('disposable', disposable);
       disposableProvider.resolve('disposable');
-      disposableProvider.dispose();
+      await disposableProvider.dispose();
       expect(disposable.dispose).not.called;
     });
 
-    it('should not break on non-disposable dependencies', () => {
+    it('should not break on non-disposable dependencies', async () => {
       class Foo { public dispose = true; }
       function barFactory(): { dispose: string } { return { dispose: 'no-fn' }; }
       class Baz {
@@ -367,20 +368,48 @@ describe('InjectorImpl', () => {
         .injectClass(Baz);
 
       // Act
-      bazInjector.dispose();
+      await bazInjector.dispose();
 
       // Assert
       expect(baz.bar.dispose).eq('no-fn');
       expect(baz.foo.dispose).eq(true);
     });
 
-    it('should not dispose dependencies twice', () => {
+    it('should not dispose dependencies twice', async () => {
       const fooProvider = rootInjector
         .provideClass('foo', class Foo implements Disposable { public dispose = sinon.stub(); });
       const foo = fooProvider.resolve('foo');
-      fooProvider.dispose();
-      fooProvider.dispose();
+      await fooProvider.dispose();
+      await fooProvider.dispose();
       expect(foo.dispose).calledOnce;
+    });
+
+    it('should await dispose()', async () => {
+      // Arrange
+      const fooStub = sinon.stub();
+      class Foo {
+        public task = new Task();
+        public dispose() {
+          fooStub();
+          return this.task.promise;
+        }
+      }
+      const fooProvider = rootInjector
+        .provideClass('foo', Foo);
+      const foo = fooProvider.resolve('foo');
+      let resolved = false;
+
+      // Act
+      const promise = fooProvider.dispose()
+        .then(() => { resolved = true; });
+      await tick(); // make sure it has a chance to fail.
+
+      // Assert
+      expect(fooStub).called;
+      expect(resolved).false;
+      foo.task.resolve();
+      await promise;
+      expect(resolved).true;
     });
   });
 

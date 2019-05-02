@@ -4,6 +4,7 @@ import { InjectableClass, InjectableFunction, Injectable } from './api/Injectabl
 import { Injector } from './api/Injector';
 import { Exception } from './Exception';
 import { Disposable } from './api/Disposable';
+import { isDisposable } from './utils';
 
 const DEFAULT_SCOPE = Scope.Singleton;
 
@@ -80,13 +81,9 @@ abstract class AbstractInjector<TContext> implements Injector<TContext>  {
     return this.resolveInternal(token, target);
   }
 
-  public abstract dispose(): void;
+  public abstract dispose(): Promise<void>;
 
   protected abstract resolveInternal<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token];
-}
-
-function isDisposable(maybeDisposable: any): maybeDisposable is Disposable {
-  return maybeDisposable && maybeDisposable.dispose && typeof maybeDisposable.dispose === 'function';
 }
 
 class RootInjector extends AbstractInjector<{}> {
@@ -95,7 +92,7 @@ class RootInjector extends AbstractInjector<{}> {
     throw new Error(`No provider found for "${token}"!.`);
   }
   public dispose() {
-    // noop, root injector cannot be disposed
+    return Promise.resolve();
   }
 }
 
@@ -144,12 +141,18 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
     }
   }
 
-  public dispose() {
+  public async dispose() {
     if (!this.isDisposed) {
-      this.isDisposed = true;
-      this.disposables.forEach(disposable => disposable.dispose());
+      this.isDisposed = true; // be sure new disposables aren't added while we're disposing
+      await this.disposeInjectedValues();
       this.parent.dispose();
     }
+  }
+
+  private async disposeInjectedValues() {
+    const promisesToAwait = [...this.disposables.values()]
+      .map(disposable => disposable.dispose());
+    await Promise.all(promisesToAwait);
   }
 
   protected resolveInternal<SearchToken extends keyof ChildContext<TParentContext, TProvided, CurrentToken>>(token: SearchToken, target: Function | undefined)
