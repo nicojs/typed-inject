@@ -1,3 +1,20 @@
+# [2.0.0](https://github.com/nicojs/typed-inject/compare/v1.0.0...v2.0.0) (2019-05-02)
+
+
+### Features
+
+* **async dispose:** allow asynchronous `dispose` ([#4](https://github.com/nicojs/typed-inject/issues/4)) ([c1167ae](https://github.com/nicojs/typed-inject/commit/c1167ae))
+* **dispose-order:** change dispose order to a stack ([#3](https://github.com/nicojs/typed-inject/issues/3)) ([257df91](https://github.com/nicojs/typed-inject/commit/257df91))
+* **node 6:** drop support for node 6 ([#5](https://github.com/nicojs/typed-inject/issues/5)) ([d3e4e85](https://github.com/nicojs/typed-inject/commit/d3e4e85))
+
+
+### BREAKING CHANGES
+
+* **node 6:** Node 6 is no longer supported.
+* **async dispose:** Dependencies are now disposed of asynchronously (while still honoring the order of "child first"). You should now `await` the result of `injector.dispose()`.
+
+
+
 # [1.0.0](https://github.com/nicojs/typed-inject/compare/v0.2.1...v1.0.0) (2019-02-12)
 
 
