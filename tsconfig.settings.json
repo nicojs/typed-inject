@@ -3,7 +3,7 @@
     "composite": true,
     "declarationMap": true,
     "module": "commonjs",
-    "target": "es2015",
+    "target": "es2017",
     "noImplicitAny": true,
     "moduleResolution": "node",
     "rootDir": ".",
