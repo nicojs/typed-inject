@@ -1,3 +1,12 @@
+# [2.1.0](https://github.com/nicojs/typed-inject/compare/v2.0.0...v2.1.0) (2019-05-03)
+
+
+### Features
+
+* **decorator:** add decorator functionality ([#6](https://github.com/nicojs/typed-inject/issues/6)) ([1508107](https://github.com/nicojs/typed-inject/commit/1508107))
+
+
+
 # [2.0.0](https://github.com/nicojs/typed-inject/compare/v1.0.0...v2.0.0) (2019-05-02)
 
 
