@@ -248,6 +248,28 @@ describe('InjectorImpl', () => {
       expect(() => sut.injectClass(class Bar { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
       expect(() => sut.injectFunction(function baz() { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".');
     });
+
+    it('should be able to decorate an existing token', () => {
+      function incrementDecorator(n: number) {
+        return ++n;
+      }
+      incrementDecorator.inject = tokens('answer');
+
+      const answerProvider = rootInjector.provideValue('answer', 40)
+        .provideFactory('answer', incrementDecorator)
+        .provideFactory('answer', incrementDecorator);
+
+      expect(answerProvider.resolve('answer')).eq(42);
+      expect(answerProvider.resolve('answer')).eq(42);
+    });
+
+    it('should be able to change the type of a token', () => {
+      const answerProvider = rootInjector
+        .provideValue('answer', 42)
+        .provideValue('answer', '42');
+      expect(answerProvider.resolve('answer')).eq('42');
+      expect(typeof answerProvider.resolve('answer')).eq('string');
+    });
   });
 
   describe('ClassProvider', () => {
@@ -258,9 +280,26 @@ describe('InjectorImpl', () => {
       expect(() => sut.injectClass(class Bar { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
       expect(() => sut.injectFunction(function baz() { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".');
     });
+
+    it('should be able to decorate an existing token', () => {
+      class Foo {
+        public static inject = tokens('answer');
+        constructor(innerFoo: { answer: number }) {
+          this.answer = innerFoo.answer + 1;
+        }
+        public answer: number;
+      }
+
+      const answerProvider = rootInjector.provideValue('answer', { answer: 40 })
+        .provideClass('answer', Foo)
+        .provideClass('answer', Foo);
+
+      expect(answerProvider.resolve('answer').answer).eq(42);
+    });
+
   });
 
-  describe('dispose', () => {
+  describe(rootInjector.dispose.name, () => {
 
     it('should dispose all disposable singleton dependencies', async () => {
       // Arrange
