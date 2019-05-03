@@ -5,6 +5,7 @@ import { Injector } from './api/Injector';
 import { Exception } from './Exception';
 import { Disposable } from './api/Disposable';
 import { isDisposable } from './utils';
+import { TChildContext } from './api/TChildContext';
 
 const DEFAULT_SCOPE = Scope.Singleton;
 
@@ -64,16 +65,17 @@ abstract class AbstractInjector<TContext> implements Injector<TContext>  {
     });
   }
 
-  public provideValue<Token extends string, R>(token: Token, value: R): AbstractInjector<{ [k in Token]: R; } & TContext> {
+  public provideValue<Token extends string, R>(token: Token, value: R)
+    : AbstractInjector<TChildContext<TContext, R, Token>> {
     return new ValueProvider(this, token, value);
   }
 
   public provideClass<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(token: Token, Class: InjectableClass<TContext, R, Tokens>, scope = DEFAULT_SCOPE)
-    : AbstractInjector<{ [k in Token]: R; } & TContext> {
+    : AbstractInjector<TChildContext<TContext, R, Token>> {
     return new ClassProvider(this, token, scope, Class);
   }
   public provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(token: Token, factory: InjectableFunction<TContext, R, Tokens>, scope = DEFAULT_SCOPE)
-    : AbstractInjector<{ [k in Token]: R; } & TContext> {
+    : AbstractInjector<TChildContext<TContext, R, Token>> {
     return new FactoryProvider(this, token, scope, factory);
   }
 
@@ -96,9 +98,7 @@ class RootInjector extends AbstractInjector<{}> {
   }
 }
 
-type ChildContext<TParentContext, TProvided, CurrentToken extends string> = TParentContext & { [K in CurrentToken]: TProvided };
-
-abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends string> extends AbstractInjector<ChildContext<TParentContext, TProvided, CurrentToken>> {
+abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends string> extends AbstractInjector<TChildContext<TParentContext, TProvided, CurrentToken>> {
 
   private cached: { value?: any } | undefined;
   private readonly disposables = new Set<Disposable>();
@@ -114,16 +114,18 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
 
   protected isDisposed = false;
 
-  public injectClass<R, Tokens extends InjectionToken<ChildContext<TParentContext, TProvided, CurrentToken>>[]>(Class: InjectableClass<ChildContext<TParentContext, TProvided, CurrentToken>, R, Tokens>, providedIn?: Function): R {
+  public injectClass
+    <R, Tokens extends InjectionToken<TChildContext<TParentContext, TProvided, CurrentToken>>[]>(Class: InjectableClass<TChildContext<TParentContext, TProvided, CurrentToken>, R, Tokens>, providedIn?: Function): R {
     this.throwIfDisposed(Class);
     return super.injectClass(Class, providedIn);
   }
-  public injectFunction<R, Tokens extends InjectionToken<ChildContext<TParentContext, TProvided, CurrentToken>>[]>(fn: InjectableFunction<ChildContext<TParentContext, TProvided, CurrentToken>, R, Tokens>, providedIn?: Function): R {
+  public injectFunction
+    <R, Tokens extends InjectionToken<TChildContext<TParentContext, TProvided, CurrentToken>>[]>(fn: InjectableFunction<TChildContext<TParentContext, TProvided, CurrentToken>, R, Tokens>, providedIn?: Function): R {
     this.throwIfDisposed(fn);
     return super.injectFunction(fn, providedIn);
   }
 
-  public resolve<Token extends keyof ChildContext<TParentContext, TProvided, CurrentToken>>(token: Token, target?: Function): ChildContext<TParentContext, TProvided, CurrentToken>[Token] {
+  public resolve<Token extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(token: Token, target?: Function): TChildContext<TParentContext, TProvided, CurrentToken>[Token] {
     this.throwIfDisposed(token);
     return super.resolve(token, target);
   }
@@ -155,23 +157,31 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
     await Promise.all(promisesToAwait);
   }
 
-  protected resolveInternal<SearchToken extends keyof ChildContext<TParentContext, TProvided, CurrentToken>>(token: SearchToken, target: Function | undefined)
-    : ChildContext<TParentContext, TProvided, CurrentToken>[SearchToken] {
+  protected resolveInternal<SearchToken extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(token: SearchToken, target: Function | undefined)
+    : TChildContext<TParentContext, TProvided, CurrentToken>[SearchToken] {
     if (token === this.token) {
       if (this.cached) {
         return this.cached.value as any;
       } else {
         const value = this.result(target);
-        if (this.responsibleForDisposing && isDisposable(value)) {
-          this.disposables.add(value);
-        }
-        if (this.scope === Scope.Singleton) {
-          this.cached = { value };
-        }
+        this.addToDisposablesIfNeeded(value);
+        this.addToCacheIfNeeded(value);
         return value as any;
       }
     } else {
       return this.parent.resolve(token as any, target) as any;
+    }
+  }
+
+  private addToCacheIfNeeded(value: TProvided) {
+    if (this.scope === Scope.Singleton) {
+      this.cached = { value };
+    }
+  }
+
+  private addToDisposablesIfNeeded(value: TProvided) {
+    if (this.responsibleForDisposing && isDisposable(value)) {
+      this.disposables.add(value);
     }
   }
 
@@ -196,7 +206,7 @@ class FactoryProvider<TParentContext, TProvided, ProvidedToken extends string, T
     super(parent, token, scope);
   }
   protected result(target: Function): TProvided {
-    return this.injectFunction(this.injectable as any, target);
+    return this.parent.injectFunction(this.injectable, target);
   }
   protected readonly responsibleForDisposing = true;
 }
@@ -209,9 +219,9 @@ class ClassProvider<TParentContext, TProvided, ProvidedToken extends string, Tok
     super(parent, token, scope);
   }
   protected result(target: Function): TProvided {
-    return this.injectClass(this.injectable as any, target);
+    return this.parent.injectClass(this.injectable, target);
   }
   protected readonly responsibleForDisposing = true;
 }
 
-export const rootInjector = new RootInjector() as Injector<{}>;
+export const rootInjector: Injector<{}> = new RootInjector();

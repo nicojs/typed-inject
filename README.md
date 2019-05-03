@@ -149,6 +149,43 @@ In the example above, a child injector is created. It can provide values for the
 The `rootInjector` always remains stateless. So don't worry about reusing it in your tests or reusing it for different parts of your application. However,
 any ChildInjector _is stateful_. For example, it can [cache the injected value](#-control-lifecycle) or [keep track of stuff to dispose](#-disposing-provided-stuff)
 
+## 🎄 Decorate your dependencies
+
+A common use case for dependency injection is the [decorator design pattern](https://en.wikipedia.org/wiki/Decorator_pattern). It is used to dynamically add functionality to existing dependencies. Typed inject supports decoration of existing dependencies using its `provideFactory` and `provideClass` methods.
+
+```ts
+import { tokens, rootInjector } from 'typed-inject';
+
+class Foo {
+  public bar() {
+    console.log ('bar!');
+  }
+}
+
+function fooDecorator(foo: Foo) {
+  return {
+    bar() {
+      console.log('before call');
+      foo.bar();
+      console.log('after call');
+    }
+  };
+}
+fooDecorator.inject = tokens('foo');
+
+const fooProvider = rootInjector
+  .provideClass('foo', Foo)
+  .provideFactory('foo', fooDecorator);
+const foo = fooProvider.resolve('foo');
+
+foo.bar();
+// => "before call"
+// => "bar!"
+// => "after call"
+```
+
+In this example above the `Foo` class is decorated by the `fooDecorator`.
+
 ## ♻ Control lifecycle
 
 You can determine the lifecycle of dependencies with the third `Scope` parameter of `provideFactory` and `provideClass` methods.
