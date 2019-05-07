@@ -11,7 +11,7 @@
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": false,
-    "importHelpers": true,
+    "importHelpers": false,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
