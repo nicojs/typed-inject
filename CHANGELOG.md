@@ -1,3 +1,12 @@
+## [2.1.1](https://github.com/nicojs/typed-inject/compare/v2.1.0...v2.1.1) (2019-09-12)
+
+
+### Bug Fixes
+
+* **tslib:** remove implicit dependency on tslib ([#8](https://github.com/nicojs/typed-inject/issues/8)) ([7fe01aa](https://github.com/nicojs/typed-inject/commit/7fe01aa))
+
+
+
 # [2.1.0](https://github.com/nicojs/typed-inject/compare/v2.0.0...v2.1.0) (2019-05-03)
 
 
