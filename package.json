@@ -46,27 +46,25 @@
   },
   "homepage": "https://github.com/nicojs/typed-inject/#readme",
   "devDependencies": {
-    "@stryker-mutator/core": "^2.1.0",
-    "@stryker-mutator/html-reporter": "^2.1.0",
-    "@stryker-mutator/mocha-framework": "^2.1.0",
-    "@stryker-mutator/mocha-runner": "^2.1.0",
-    "@stryker-mutator/typescript": "^2.1.0",
-    "@types/chai": "^4.2.2",
+    "@stryker-mutator/core": "^2.5.0",
+    "@stryker-mutator/html-reporter": "^2.5.0",
+    "@stryker-mutator/mocha-framework": "^2.5.0",
+    "@stryker-mutator/mocha-runner": "^2.5.0",
+    "@stryker-mutator/typescript": "^2.5.0",
+    "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.7.5",
-    "@types/sinon": "^7.0.13",
+    "@types/node": "^13.1.7",
+    "@types/sinon": "^7.5.1",
     "@types/sinon-chai": "^3.2.3",
     "chai": "^4.2.0",
-    "conventional-changelog-cli": "^2.0.23",
-    "mocha": "^6.2.0",
-    "nyc": "^14.1.1",
+    "conventional-changelog-cli": "^2.0.31",
+    "mocha": "^7.0.0",
+    "nyc": "^15.0.0",
     "rimraf": "^3.0.0",
-    "sinon": "^7.4.2",
-    "sinon-chai": "^3.3.0",
-    "source-map-support": "^0.5.13",
-    "tslint": "^5.20.0"
-  },
-  "dependencies": {
-    "typescript": "^3.6.3"
+    "sinon": "^8.0.4",
+    "sinon-chai": "^3.4.0",
+    "source-map-support": "^0.5.16",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.4"
   }
 }
