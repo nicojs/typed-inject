@@ -21,4 +21,7 @@ jobs:
                 node-version: ${{ matrix.node-version }}
             - run: npm ci
             - run: npm run all
+              env:
+                STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      
            

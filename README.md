@@ -1,3 +1,4 @@
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fnicojs%2Ftyped-inject%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/nicojs/typed-inject/master)
 [![Build Status](https://travis-ci.org/nicojs/typed-inject.svg?branch=master)](https://travis-ci.org/nicojs/typed-inject)
 [![NPM](https://img.shields.io/npm/dm/typed-inject.svg)](https://www.npmjs.com/package/typed-inject)
 [![Node version](https://img.shields.io/node/v/typed-inject.svg)](https://img.shields.io/node/v/stryker-utils.svg)
