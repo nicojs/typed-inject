@@ -17,6 +17,9 @@ module.exports = function (config) {
       high: 90,
       low: 80,
       break: 92
+    },
+    dashboard: {
+      reportType: 'full'
     }
   });
 };
