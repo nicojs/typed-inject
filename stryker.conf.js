@@ -1,4 +1,5 @@
-module.exports = function (config) {
+// eslint-disable-next-line no-undef
+module.exports = function(config) {
   config.set({
     mutator: 'typescript',
     packageManager: 'npm',

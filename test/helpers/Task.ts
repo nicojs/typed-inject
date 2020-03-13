@@ -1,4 +1,3 @@
-
 export class Task {
   public resolve!: () => void;
   public reject!: (reason?: Error) => void;

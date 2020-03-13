@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { expect } from 'chai';
 import { Injector } from '../../src/api/Injector';
 import { tokens } from '../../src/tokens';
@@ -10,16 +13,14 @@ import { Disposable } from '../../src/api/Disposable';
 import { Task, tick } from '../helpers/Task';
 
 describe('InjectorImpl', () => {
-
   describe('AbstractInjector', () => {
-
     it('should be able to inject injector and target in a class', () => {
       // Arrange
       class Injectable {
         constructor(
           public readonly target: Function | undefined,
-          public readonly injector: Injector<{}>) {
-        }
+          public readonly injector: Injector<{}>
+        ) {}
         public static inject = tokens(TARGET_TOKEN, INJECTOR_TOKEN);
       }
 
@@ -44,7 +45,9 @@ describe('InjectorImpl', () => {
       injectable.inject = tokens(TARGET_TOKEN, INJECTOR_TOKEN);
 
       // Act
-      const actualResult: { result: number } = rootInjector.injectFunction(injectable);
+      const actualResult: { result: number } = rootInjector.injectFunction(
+        injectable
+      );
 
       // Assert
       expect(actualTarget).undefined;
@@ -63,7 +66,7 @@ describe('InjectorImpl', () => {
       }
       barFactory.inject = tokens(TARGET_TOKEN, 'fooName');
       class Foo {
-        constructor(public name: string) { }
+        constructor(public name: string) {}
         public static inject = tokens('name');
       }
 
@@ -80,16 +83,16 @@ describe('InjectorImpl', () => {
     it('should be able to provide a target into a class', () => {
       // Arrange
       class Foo {
-        constructor(public target: undefined | Function) { }
+        constructor(public target: undefined | Function) {}
         public static inject = tokens(TARGET_TOKEN);
       }
       class Bar {
-        constructor(public target: undefined | Function, public foo: Foo) { }
+        constructor(public target: undefined | Function, public foo: Foo) {}
         public static inject = tokens(TARGET_TOKEN, 'foo');
       }
 
       class Baz {
-        constructor(public bar: Bar, public target: Function | undefined) { }
+        constructor(public bar: Bar, public target: Function | undefined) {}
         public static inject = tokens('bar', TARGET_TOKEN);
       }
 
@@ -107,12 +110,13 @@ describe('InjectorImpl', () => {
 
     it('should throw when no provider was found for a class', () => {
       class FooInjectable {
-        constructor(public foo: string) {
-        }
+        constructor(public foo: string) {}
         public static inject = tokens('foo');
       }
-      expect(() => rootInjector.injectClass(FooInjectable as any)).throws(Exception,
-        'Could not inject "FooInjectable". Inner error: No provider found for "foo"!');
+      expect(() => rootInjector.injectClass(FooInjectable as any)).throws(
+        Exception,
+        'Could not inject "FooInjectable". Inner error: No provider found for "foo"!'
+      );
     });
 
     it('should throw when no provider was found for a function', () => {
@@ -120,13 +124,15 @@ describe('InjectorImpl', () => {
         return bar;
       }
       foo.inject = ['bar'];
-      expect(() => rootInjector.injectFunction(foo as any)).throws(Exception,
-        'Could not inject "foo". Inner error: No provider found for "bar"!');
+      expect(() => rootInjector.injectFunction(foo as any)).throws(
+        Exception,
+        'Could not inject "foo". Inner error: No provider found for "bar"!'
+      );
     });
 
     it('should be able to provide an Injector for a partial context', () => {
       class Foo {
-        constructor(public injector: Injector<{ bar: number }>) { }
+        constructor(public injector: Injector<{ bar: number }>) {}
         public static inject = tokens(INJECTOR_TOKEN);
       }
       const barBazInjector = rootInjector
@@ -135,11 +141,9 @@ describe('InjectorImpl', () => {
       const actualFoo = barBazInjector.injectClass(Foo);
       expect(actualFoo.injector).eq(barBazInjector);
     });
-
   });
 
   describe('ChildInjector', () => {
-
     it('should cache the value if scope = Singleton', () => {
       // Arrange
       let n = 0;
@@ -149,7 +153,7 @@ describe('InjectorImpl', () => {
       count.inject = tokens();
       const countInjector = rootInjector.provideFactory('count', count);
       class Injectable {
-        constructor(public count: number) { }
+        constructor(public count: number) {}
         public static inject = tokens('count');
       }
 
@@ -168,9 +172,13 @@ describe('InjectorImpl', () => {
         return n++;
       }
       count.inject = tokens();
-      const countInjector = rootInjector.provideFactory('count', count, Scope.Transient);
+      const countInjector = rootInjector.provideFactory(
+        'count',
+        count,
+        Scope.Transient
+      );
       class Injectable {
-        constructor(public count: number) { }
+        constructor(public count: number) {}
         public static inject = tokens('count');
       }
 
@@ -187,10 +195,12 @@ describe('InjectorImpl', () => {
   describe('ValueProvider', () => {
     it('should be able to provide a value', () => {
       const sut = rootInjector.provideValue('foo', 42);
-      const actual = sut.injectClass(class {
-        constructor(public foo: number) { }
-        public static inject = tokens('foo');
-      });
+      const actual = sut.injectClass(
+        class {
+          constructor(public foo: number) {}
+          public static inject = tokens('foo');
+        }
+      );
       expect(actual.foo).eq(42);
     });
     it('should be able to provide a value from the parent injector', () => {
@@ -201,12 +211,17 @@ describe('InjectorImpl', () => {
       expect(sut.resolve('foo')).eq(42);
     });
     it('should throw after disposed', () => {
-      const sut = rootInjector
-        .provideValue('foo', 42);
+      const sut = rootInjector.provideValue('foo', 42);
       sut.dispose();
-      expect(() => sut.resolve('foo')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve "foo".');
-      expect(() => sut.injectClass(class Bar { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
-      expect(() => sut.injectFunction(function baz() { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".');
+      expect(() => sut.resolve('foo')).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to resolve "foo".'
+      );
+      expect(() => sut.injectClass(class Bar {})).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".'
+      );
+      expect(() => sut.injectFunction(function baz() {})).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".'
+      );
     });
   });
 
@@ -217,12 +232,12 @@ describe('InjectorImpl', () => {
         return expectedValue;
       }
 
-      const actual = rootInjector
-        .provideFactory('foobar', foobar)
-        .injectClass(class {
-          constructor(public foobar: { foo: string }) { }
+      const actual = rootInjector.provideFactory('foobar', foobar).injectClass(
+        class {
+          constructor(public foobar: { foo: string }) {}
           public static inject = tokens('foobar');
-        });
+        }
+      );
       expect(actual.foobar).eq(expectedValue);
     });
 
@@ -231,10 +246,15 @@ describe('InjectorImpl', () => {
         return 42;
       }
       const factoryProvider = rootInjector.provideFactory('answer', answer);
-      const actual = factoryProvider.injectClass(class {
-        constructor(public injector: Injector<{ answer: number }>, public answer: number) { }
-        public static inject = tokens(INJECTOR_TOKEN, 'answer');
-      });
+      const actual = factoryProvider.injectClass(
+        class {
+          constructor(
+            public injector: Injector<{ answer: number }>,
+            public answer: number
+          ) {}
+          public static inject = tokens(INJECTOR_TOKEN, 'answer');
+        }
+      );
       expect(actual.injector).eq(factoryProvider);
       expect(actual.answer).eq(42);
     });
@@ -244,9 +264,15 @@ describe('InjectorImpl', () => {
         return 42;
       });
       sut.dispose();
-      expect(() => sut.resolve('answer')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve "answer".');
-      expect(() => sut.injectClass(class Bar { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
-      expect(() => sut.injectFunction(function baz() { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".');
+      expect(() => sut.resolve('answer')).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to resolve "answer".'
+      );
+      expect(() => sut.injectClass(class Bar {})).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".'
+      );
+      expect(() => sut.injectFunction(function baz() {})).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".'
+      );
     });
 
     it('should be able to decorate an existing token', () => {
@@ -255,7 +281,8 @@ describe('InjectorImpl', () => {
       }
       incrementDecorator.inject = tokens('answer');
 
-      const answerProvider = rootInjector.provideValue('answer', 40)
+      const answerProvider = rootInjector
+        .provideValue('answer', 40)
         .provideFactory('answer', incrementDecorator)
         .provideFactory('answer', incrementDecorator);
 
@@ -274,11 +301,17 @@ describe('InjectorImpl', () => {
 
   describe('ClassProvider', () => {
     it('should throw after disposed', () => {
-      const sut = rootInjector.provideClass('foo', class Foo { });
+      const sut = rootInjector.provideClass('foo', class Foo {});
       sut.dispose();
-      expect(() => sut.resolve('foo')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve "foo".');
-      expect(() => sut.injectClass(class Bar { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
-      expect(() => sut.injectFunction(function baz() { })).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".');
+      expect(() => sut.resolve('foo')).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to resolve "foo".'
+      );
+      expect(() => sut.injectClass(class Bar {})).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".'
+      );
+      expect(() => sut.injectFunction(function baz() {})).throws(
+        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".'
+      );
     });
 
     it('should be able to decorate an existing token', () => {
@@ -290,35 +323,36 @@ describe('InjectorImpl', () => {
         public answer: number;
       }
 
-      const answerProvider = rootInjector.provideValue('answer', { answer: 40 })
+      const answerProvider = rootInjector
+        .provideValue('answer', { answer: 40 })
         .provideClass('answer', Foo)
         .provideClass('answer', Foo);
 
       expect(answerProvider.resolve('answer').answer).eq(42);
     });
-
   });
 
   describe(rootInjector.dispose.name, () => {
-
     it('should dispose all disposable singleton dependencies', async () => {
       // Arrange
       class Foo {
         public dispose2 = sinon.stub();
         public dispose = sinon.stub();
       }
-      function barFactory(): Disposable & { dispose3(): void; } {
+      function barFactory(): Disposable & { dispose3(): void } {
         return { dispose: sinon.stub(), dispose3: sinon.stub() };
       }
       class Baz {
-        constructor(public readonly bar: Disposable & { dispose3(): void; }, public readonly foo: Foo) { }
+        constructor(
+          public readonly bar: Disposable & { dispose3(): void },
+          public readonly foo: Foo
+        ) {}
         public static inject = tokens('bar', 'foo');
       }
       const bazInjector = rootInjector
         .provideClass('foo', Foo)
         .provideFactory('bar', barFactory);
-      const baz = bazInjector
-        .injectClass(Baz);
+      const baz = bazInjector.injectClass(Baz);
 
       // Act
       await bazInjector.dispose();
@@ -331,17 +365,23 @@ describe('InjectorImpl', () => {
     });
 
     it('should also dispose transient dependencies', async () => {
-      class Foo { public dispose = sinon.stub(); }
-      function barFactory(): Disposable { return { dispose: sinon.stub() }; }
+      class Foo {
+        public dispose = sinon.stub();
+      }
+      function barFactory(): Disposable {
+        return { dispose: sinon.stub() };
+      }
       class Baz {
-        constructor(public readonly bar: Disposable, public readonly foo: Foo) { }
+        constructor(
+          public readonly bar: Disposable,
+          public readonly foo: Foo
+        ) {}
         public static inject = tokens('bar', 'foo');
       }
       const bazInjector = rootInjector
         .provideClass('foo', Foo, Scope.Transient)
         .provideFactory('bar', barFactory, Scope.Transient);
-      const baz = bazInjector
-        .injectClass(Baz);
+      const baz = bazInjector.injectClass(Baz);
 
       // Act
       await bazInjector.dispose();
@@ -352,10 +392,17 @@ describe('InjectorImpl', () => {
     });
 
     it('should dispose dependencies in correct order (child first)', async () => {
-      class Grandparent { public dispose = sinon.stub(); }
-      class Parent { public dispose = sinon.stub(); }
+      class Grandparent {
+        public dispose = sinon.stub();
+      }
+      class Parent {
+        public dispose = sinon.stub();
+      }
       class Child {
-        constructor(public readonly parent: Parent, public readonly grandparent: Grandparent) { }
+        constructor(
+          public readonly parent: Parent,
+          public readonly grandparent: Grandparent
+        ) {}
         public static inject = tokens('parent', 'grandparent');
         public dispose = sinon.stub();
       }
@@ -376,8 +423,12 @@ describe('InjectorImpl', () => {
     });
 
     it('should not dispose injected classes or functions', async () => {
-      class Foo { public dispose = sinon.stub(); }
-      function barFactory(): Disposable { return { dispose: sinon.stub() }; }
+      class Foo {
+        public dispose = sinon.stub();
+      }
+      function barFactory(): Disposable {
+        return { dispose: sinon.stub() };
+      }
       const foo = rootInjector.injectClass(Foo);
       const bar = rootInjector.injectFunction(barFactory);
       await rootInjector.dispose();
@@ -387,24 +438,33 @@ describe('InjectorImpl', () => {
 
     it('should not dispose providedValues', async () => {
       const disposable: Disposable = { dispose: sinon.stub() };
-      const disposableProvider = rootInjector.provideValue('disposable', disposable);
+      const disposableProvider = rootInjector.provideValue(
+        'disposable',
+        disposable
+      );
       disposableProvider.resolve('disposable');
       await disposableProvider.dispose();
       expect(disposable.dispose).not.called;
     });
 
     it('should not break on non-disposable dependencies', async () => {
-      class Foo { public dispose = true; }
-      function barFactory(): { dispose: string } { return { dispose: 'no-fn' }; }
+      class Foo {
+        public dispose = true;
+      }
+      function barFactory(): { dispose: string } {
+        return { dispose: 'no-fn' };
+      }
       class Baz {
-        constructor(public readonly bar: { dispose: string }, public readonly foo: Foo) { }
+        constructor(
+          public readonly bar: { dispose: string },
+          public readonly foo: Foo
+        ) {}
         public static inject = tokens('bar', 'foo');
       }
       const bazInjector = rootInjector
         .provideClass('foo', Foo)
         .provideFactory('bar', barFactory);
-      const baz = bazInjector
-        .injectClass(Baz);
+      const baz = bazInjector.injectClass(Baz);
 
       // Act
       await bazInjector.dispose();
@@ -415,8 +475,12 @@ describe('InjectorImpl', () => {
     });
 
     it('should not dispose dependencies twice', async () => {
-      const fooProvider = rootInjector
-        .provideClass('foo', class Foo implements Disposable { public dispose = sinon.stub(); });
+      const fooProvider = rootInjector.provideClass(
+        'foo',
+        class Foo implements Disposable {
+          public dispose = sinon.stub();
+        }
+      );
       const foo = fooProvider.resolve('foo');
       await fooProvider.dispose();
       await fooProvider.dispose();
@@ -433,14 +497,14 @@ describe('InjectorImpl', () => {
           return this.task.promise;
         }
       }
-      const fooProvider = rootInjector
-        .provideClass('foo', Foo);
+      const fooProvider = rootInjector.provideClass('foo', Foo);
       const foo = fooProvider.resolve('foo');
       let resolved = false;
 
       // Act
-      const promise = fooProvider.dispose()
-        .then(() => { resolved = true; });
+      const promise = fooProvider.dispose().then(() => {
+        resolved = true;
+      });
       await tick(); // make sure it has a chance to fail.
 
       // Assert
@@ -456,33 +520,30 @@ describe('InjectorImpl', () => {
     it('should be able to inject a dependency tree', () => {
       // Arrange
       class Logger {
-        public info(_msg: string) {
-        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        public info(_msg: string) {}
       }
       class GrandChild {
         public baz = 'qux';
-        constructor(public log: Logger) {
-        }
+        constructor(public log: Logger) {}
         public static inject = tokens('logger');
       }
       class Child1 {
         public bar = 'foo';
-        constructor(public log: Logger, public grandchild: GrandChild) {
-        }
+        constructor(public log: Logger, public grandchild: GrandChild) {}
         public static inject = tokens('logger', 'grandChild');
       }
       class Child2 {
         public foo = 'bar';
-        constructor(public log: Logger) {
-        }
+        constructor(public log: Logger) {}
         public static inject = tokens('logger');
       }
       class Parent {
         constructor(
           public readonly child: Child1,
           public readonly child2: Child2,
-          public readonly log: Logger) {
-        }
+          public readonly log: Logger
+        ) {}
         public static inject = tokens('child1', 'child2', 'logger');
       }
       const expectedLogger = new Logger();
