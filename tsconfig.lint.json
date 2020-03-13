@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.settings.json",
-  // This file is a workaround for: https://github.com/palantir/tslint/issues/4137
+  "compilerOptions": {
+    "allowJs": true
+  },
   "include": [
     "src",
     "test"
