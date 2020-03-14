@@ -1,14 +1,6 @@
 import { Scope } from './api/Scope';
-import {
-  InjectionToken,
-  INJECTOR_TOKEN,
-  TARGET_TOKEN
-} from './api/InjectionToken';
-import {
-  InjectableClass,
-  InjectableFunction,
-  Injectable
-} from './api/Injectable';
+import { InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken';
+import { InjectableClass, InjectableFunction, Injectable } from './api/Injectable';
 import { Injector } from './api/Injector';
 import { Exception } from './Exception';
 import { Disposable } from './api/Disposable';
@@ -40,10 +32,7 @@ const DEFAULT_SCOPE = Scope.Singleton;
 */
 
 abstract class AbstractInjector<TContext> implements Injector<TContext> {
-  public injectClass<R, Tokens extends InjectionToken<TContext>[]>(
-    Class: InjectableClass<TContext, R, Tokens>,
-    providedIn?: Function
-  ): R {
+  public injectClass<R, Tokens extends InjectionToken<TContext>[]>(Class: InjectableClass<TContext, R, Tokens>, providedIn?: Function): R {
     try {
       const args: any[] = this.resolveParametersToInject(Class, providedIn);
       return new Class(...(args as any));
@@ -52,10 +41,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     }
   }
 
-  public injectFunction<R, Tokens extends InjectionToken<TContext>[]>(
-    fn: InjectableFunction<TContext, R, Tokens>,
-    providedIn?: Function
-  ): R {
+  public injectFunction<R, Tokens extends InjectionToken<TContext>[]>(fn: InjectableFunction<TContext, R, Tokens>, providedIn?: Function): R {
     try {
       const args: any[] = this.resolveParametersToInject(fn, providedIn);
       return fn(...(args as any));
@@ -81,29 +67,18 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     });
   }
 
-  public provideValue<Token extends string, R>(
-    token: Token,
-    value: R
-  ): AbstractInjector<TChildContext<TContext, R, Token>> {
+  public provideValue<Token extends string, R>(token: Token, value: R): AbstractInjector<TChildContext<TContext, R, Token>> {
     return new ValueProvider(this, token, value);
   }
 
-  public provideClass<
-    Token extends string,
-    R,
-    Tokens extends InjectionToken<TContext>[]
-  >(
+  public provideClass<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
     token: Token,
     Class: InjectableClass<TContext, R, Tokens>,
     scope = DEFAULT_SCOPE
   ): AbstractInjector<TChildContext<TContext, R, Token>> {
     return new ClassProvider(this, token, scope, Class);
   }
-  public provideFactory<
-    Token extends string,
-    R,
-    Tokens extends InjectionToken<TContext>[]
-  >(
+  public provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
     token: Token,
     factory: InjectableFunction<TContext, R, Tokens>,
     scope = DEFAULT_SCOPE
@@ -111,19 +86,13 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     return new FactoryProvider(this, token, scope, factory);
   }
 
-  public resolve<Token extends keyof TContext>(
-    token: Token,
-    target?: Function
-  ): TContext[Token] {
+  public resolve<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token] {
     return this.resolveInternal(token, target);
   }
 
   public abstract dispose(): Promise<void>;
 
-  protected abstract resolveInternal<Token extends keyof TContext>(
-    token: Token,
-    target?: Function
-  ): TContext[Token];
+  protected abstract resolveInternal<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token];
 }
 
 class RootInjector extends AbstractInjector<{}> {
@@ -135,21 +104,13 @@ class RootInjector extends AbstractInjector<{}> {
   }
 }
 
-abstract class ChildInjector<
-  TParentContext,
-  TProvided,
-  CurrentToken extends string
-> extends AbstractInjector<
+abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends string> extends AbstractInjector<
   TChildContext<TParentContext, TProvided, CurrentToken>
 > {
   private cached: { value?: any } | undefined;
   private readonly disposables = new Set<Disposable>();
 
-  constructor(
-    protected readonly parent: AbstractInjector<TParentContext>,
-    protected readonly token: CurrentToken,
-    private readonly scope: Scope
-  ) {
+  constructor(protected readonly parent: AbstractInjector<TParentContext>, protected readonly token: CurrentToken, private readonly scope: Scope) {
     super();
   }
 
@@ -158,42 +119,22 @@ abstract class ChildInjector<
 
   protected isDisposed = false;
 
-  public injectClass<
-    R,
-    Tokens extends InjectionToken<
-      TChildContext<TParentContext, TProvided, CurrentToken>
-    >[]
-  >(
-    Class: InjectableClass<
-      TChildContext<TParentContext, TProvided, CurrentToken>,
-      R,
-      Tokens
-    >,
+  public injectClass<R, Tokens extends InjectionToken<TChildContext<TParentContext, TProvided, CurrentToken>>[]>(
+    Class: InjectableClass<TChildContext<TParentContext, TProvided, CurrentToken>, R, Tokens>,
     providedIn?: Function
   ): R {
     this.throwIfDisposed(Class);
     return super.injectClass(Class, providedIn);
   }
-  public injectFunction<
-    R,
-    Tokens extends InjectionToken<
-      TChildContext<TParentContext, TProvided, CurrentToken>
-    >[]
-  >(
-    fn: InjectableFunction<
-      TChildContext<TParentContext, TProvided, CurrentToken>,
-      R,
-      Tokens
-    >,
+  public injectFunction<R, Tokens extends InjectionToken<TChildContext<TParentContext, TProvided, CurrentToken>>[]>(
+    fn: InjectableFunction<TChildContext<TParentContext, TProvided, CurrentToken>, R, Tokens>,
     providedIn?: Function
   ): R {
     this.throwIfDisposed(fn);
     return super.injectFunction(fn, providedIn);
   }
 
-  public resolve<
-    Token extends keyof TChildContext<TParentContext, TProvided, CurrentToken>
-  >(
+  public resolve<Token extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(
     token: Token,
     target?: Function
   ): TChildContext<TParentContext, TProvided, CurrentToken>[Token] {
@@ -201,13 +142,9 @@ abstract class ChildInjector<
     return super.resolve(token, target);
   }
 
-  private throwIfDisposed(
-    injectableOrToken: Function | symbol | number | string | undefined
-  ) {
+  private throwIfDisposed(injectableOrToken: Function | symbol | number | string | undefined) {
     if (this.isDisposed) {
-      throw new Exception(
-        `Injector is already disposed. Please don't use it anymore.${additionalErrorMessage()}`
-      );
+      throw new Exception(`Injector is already disposed. Please don't use it anymore.${additionalErrorMessage()}`);
     }
     function additionalErrorMessage() {
       if (typeof injectableOrToken === 'function') {
@@ -227,19 +164,11 @@ abstract class ChildInjector<
   }
 
   private async disposeInjectedValues() {
-    const promisesToAwait = [...this.disposables.values()].map(disposable =>
-      disposable.dispose()
-    );
+    const promisesToAwait = [...this.disposables.values()].map(disposable => disposable.dispose());
     await Promise.all(promisesToAwait);
   }
 
-  protected resolveInternal<
-    SearchToken extends keyof TChildContext<
-      TParentContext,
-      TProvided,
-      CurrentToken
-    >
-  >(
+  protected resolveInternal<SearchToken extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(
     token: SearchToken,
     target: Function | undefined
   ): TChildContext<TParentContext, TProvided, CurrentToken>[SearchToken] {
@@ -270,16 +199,8 @@ abstract class ChildInjector<
   }
 }
 
-class ValueProvider<
-  TParentContext,
-  TProvided,
-  ProvidedToken extends string
-> extends ChildInjector<TParentContext, TProvided, ProvidedToken> {
-  constructor(
-    parent: AbstractInjector<TParentContext>,
-    token: ProvidedToken,
-    private readonly value: TProvided
-  ) {
+class ValueProvider<TParentContext, TProvided, ProvidedToken extends string> extends ChildInjector<TParentContext, TProvided, ProvidedToken> {
+  constructor(parent: AbstractInjector<TParentContext>, token: ProvidedToken, private readonly value: TProvided) {
     super(parent, token, Scope.Transient);
   }
   protected result(): TProvided {
@@ -288,21 +209,16 @@ class ValueProvider<
   protected readonly responsibleForDisposing = false;
 }
 
-class FactoryProvider<
+class FactoryProvider<TParentContext, TProvided, ProvidedToken extends string, Tokens extends InjectionToken<TParentContext>[]> extends ChildInjector<
   TParentContext,
   TProvided,
-  ProvidedToken extends string,
-  Tokens extends InjectionToken<TParentContext>[]
-> extends ChildInjector<TParentContext, TProvided, ProvidedToken> {
+  ProvidedToken
+> {
   constructor(
     parent: AbstractInjector<TParentContext>,
     token: ProvidedToken,
     scope: Scope,
-    private readonly injectable: InjectableFunction<
-      TParentContext,
-      TProvided,
-      Tokens
-    >
+    private readonly injectable: InjectableFunction<TParentContext, TProvided, Tokens>
   ) {
     super(parent, token, scope);
   }
@@ -312,21 +228,16 @@ class FactoryProvider<
   protected readonly responsibleForDisposing = true;
 }
 
-class ClassProvider<
+class ClassProvider<TParentContext, TProvided, ProvidedToken extends string, Tokens extends InjectionToken<TParentContext>[]> extends ChildInjector<
   TParentContext,
   TProvided,
-  ProvidedToken extends string,
-  Tokens extends InjectionToken<TParentContext>[]
-> extends ChildInjector<TParentContext, TProvided, ProvidedToken> {
+  ProvidedToken
+> {
   constructor(
     parent: AbstractInjector<TParentContext>,
     token: ProvidedToken,
     scope: Scope,
-    private readonly injectable: InjectableClass<
-      TParentContext,
-      TProvided,
-      Tokens
-    >
+    private readonly injectable: InjectableClass<TParentContext, TProvided, Tokens>
   ) {
     super(parent, token, scope);
   }
