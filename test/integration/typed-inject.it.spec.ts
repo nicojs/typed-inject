@@ -32,11 +32,7 @@ function findActualError(fileName: string) {
     undefined,
     program
   );
-  const diagnostics = ts
-    .getPreEmitDiagnostics(program)
-    .map(diagnostic =>
-      ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
-    );
+  const diagnostics = ts.getPreEmitDiagnostics(program).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
   expect(diagnostics.length).lessThan(2, diagnostics.join(', '));
   return diagnostics[0];
 }
@@ -52,15 +48,11 @@ function parseExpectedError(line: string): string | undefined {
     } else if (typeof error === 'string') {
       return error;
     } else {
-      expect.fail(
-        `Unable to parse expectation: ${line}, use a JSON string or undefined`
-      );
+      expect.fail(`Unable to parse expectation: ${line}, use a JSON string or undefined`);
       throw new Error();
     }
   } else {
-    expect.fail(
-      `Unable to parse expectation: ${line}, make sure file starts with '// error: "expected error"`
-    );
+    expect.fail(`Unable to parse expectation: ${line}, make sure file starts with '// error: "expected error"`);
     throw new Error();
   }
 }
@@ -78,13 +70,7 @@ function readFile(fileName: string): Promise<string> {
 }
 
 function testResource(relativePath?: string) {
-  return path.resolve(
-    __dirname,
-    '..',
-    '..',
-    'testResources',
-    relativePath || '.'
-  );
+  return path.resolve(__dirname, '..', '..', 'testResources', relativePath || '.');
 }
 
 async function readFirstLine(fileName: string) {
