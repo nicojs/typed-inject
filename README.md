@@ -14,6 +14,22 @@ _If you are new to 'Dependency Injection'/'Inversion of control', please read up
 
 _If you want to know more about how typed-inject works, please read [my blog article about it](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96)_
 
+
+* [🗺️ Installation](#installation)
+* [🎁 Usage](#usage)
+* [💭 Motivation](#motivation)
+* [🗝️ Type safe? How?](#type-safe-ho)
+* [👶 Child injectors](#child-injectors)
+* [🎄 Decorate your dependencies](#decorate-your-dependencies)
+* [♻ Lifecycle control](#)
+* [🚮 Disposing provided stuff](#disposing-provided-stuff)
+* [✨ Magic tokens](#magic-tokens)
+* [😬 Error handling](#error-handling)
+* [📖 API reference](#api-reference)
+* [🤝 Commendation](#commendation)
+
+<a name="installation"></a>
+
 ## 🗺️ Installation
 
 Install typed-inject locally within your project folder, like so:
@@ -29,6 +45,8 @@ yarn add typed-inject
 ```
 
 _Note: this package uses advanced TypeScript features. Only TS 3.0 and above is supported!_
+
+<a name="Usage"></a>
 
 ## 🎁 Usage
 
@@ -95,6 +113,8 @@ const myService = appInjector.injectClass(MyService);
 
 The error messages are a bit cryptic at times, but it sure is better than running into them at runtime.
 
+<a name="motivation"></a>
+
 ## 💭 Motivation
 
 JavaScript and TypeScript development already has a great dependency injection solution with [InversifyJS](https://github.com/inversify/InversifyJS). However, InversifyJS comes with 2 caveats.
@@ -106,6 +126,8 @@ InversifyJS works with a nice API using decorators. Decorators is in Stage 2 of 
 ### InversifyJS is not type-safe
 
 InversifyJS is also _not_ type-safe. There is no check to see of the injected type is actually injectable or that the corresponding type adheres to the expected type.
+
+<a name="type-safe-how"></a>
 
 ## 🗝️ Type safe? How?
 
@@ -119,7 +141,9 @@ Type safe dependency injection works by combining awesome TypeScript features. S
 
 Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96) if you want to know how this works.
 
-## 👶 Creating child injectors
+<a name="child-injectors"></a>
+
+## 👶 Child injectors
 
 The `Injector` interface is responsible for injecting classes or functions. However, `typed-inject` only comes with one implementation: the `rootInjector`. It can't provide any dependencies directly (expect for [magic tokens](#-magic-tokens)).
 
@@ -148,6 +172,8 @@ In the example above, a child injector is created. It can provide values for the
 
 The `rootInjector` always remains stateless. So don't worry about reusing it in your tests or reusing it for different parts of your application. However,
 any ChildInjector _is stateful_. For example, it can [cache the injected value](#-control-lifecycle) or [keep track of stuff to dispose](#-disposing-provided-stuff)
+
+<a name="decorate-your-dependencies"></a>
 
 ## 🎄 Decorate your dependencies
 
@@ -184,7 +210,9 @@ foo.bar();
 
 In this example above the `Foo` class is decorated by the `fooDecorator`.
 
-## ♻ Control lifecycle
+<a name="lifecycle-control"></a>
+
+## ♻ Lifecycle control
 
 You can determine the lifecycle of dependencies with the third `Scope` parameter of `provideFactory` and `provideClass` methods.
 
@@ -215,6 +243,8 @@ A scope has 2 possible values.
   the instance will be _scoped to the `Injector`_
 - `Scope.Transient`  
   Use `Scope.Transient` to completely disable cashing. You'll always get fresh instances.
+
+<a name="disposing-provided-stuff"></a>
 
 ## 🚮 Disposing provided stuff
 
@@ -315,6 +345,8 @@ await fooProvider.dispose();
 
 Any instance created with `injectClass` or `injectFactory` will _not_ be disposed when `dispose` is called. You were responsible for creating it, so you are also responsible for the disposing of it. In the same vain, anything provided as a value with `providedValue` will also _not_ be disposed when `dispose` is called on it's injector.
 
+<a name="magic-tokens"></a>
+
 ## ✨ Magic tokens
 
 Any `Injector` instance can always inject the following tokens:
@@ -336,6 +368,8 @@ class Foo {
 
 const foo = rootInjector.inject(Foo);
 ```
+
+<a name="error-handling"></a>
 
 ## 😬 Error handling
 
@@ -379,6 +413,8 @@ try {
   }
 }
 ```
+
+<a name="api-reference"></a>
 
 ## 📖 API reference
 
@@ -558,6 +594,8 @@ This will contain the path that was taken to get to the error.
 #### `InjectionError.cause`
 
 The original cause of the injection error.
+
+<a name="commendation"></a>
 
 ## 🤝 Commendation
 
