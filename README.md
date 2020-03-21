@@ -38,7 +38,7 @@ An example:
 import { rootInjector, tokens } from 'typed-inject';
 
 interface Logger {
-    info(message: string): void;
+  info(message: string): void;
 }
 
 const logger: Logger = {
@@ -48,29 +48,27 @@ const logger: Logger = {
 };
 
 class HttpClient {
-    constructor(private log: Logger) { }
-    public static inject = tokens('logger');
+  constructor(private log: Logger) {}
+  public static inject = tokens('logger');
 }
 
 class MyService {
-    constructor(private http: HttpClient, private log: Logger) { }
-    public static inject = tokens('httpClient', 'logger');
+  constructor(private http: HttpClient, private log: Logger) {}
+  public static inject = tokens('httpClient', 'logger');
 }
 
-const appInjector = rootInjector
-  .provideValue('logger', logger)
-  .provideClass('httpClient', HttpClient);
+const appInjector = rootInjector.provideValue('logger', logger).provideClass('httpClient', HttpClient);
 
 const myService = appInjector.injectClass(MyService);
 // Dependencies for MyService validated and injected
 ```
 
-In this example: 
+In this example:
 
-* The `logger` is injected into a new instance of `HttpClient` by value.
-* The instance of `HttpClient` and the `logger` are injected into a new instance of `MyService`.
+- The `logger` is injected into a new instance of `HttpClient` by value.
+- The instance of `HttpClient` and the `logger` are injected into a new instance of `MyService`.
 
-Dependencies are resolved using the static `inject` property on their classes. They must match the names given to the dependencies when configuring the injector with `provideXXX` methods. 
+Dependencies are resolved using the static `inject` property on their classes. They must match the names given to the dependencies when configuring the injector with `provideXXX` methods.
 
 Expect compiler errors when you mess up the order of tokens or forget it completely.
 
@@ -80,25 +78,22 @@ import { rootInjector, tokens } from 'typed-inject';
 // Same logger as before
 
 class HttpClient {
-    constructor(private log: Logger) { }
-    // ERROR! Property 'inject' is missing in type 'typeof HttpClient' but required
+  constructor(private log: Logger) {}
+  // ERROR! Property 'inject' is missing in type 'typeof HttpClient' but required
 }
 
 class MyService {
-    constructor(private http: HttpClient, private log: Logger) { }
-    public static inject = tokens('logger', 'httpClient');
-    // ERROR! Types of parameters 'http' and 'args_0' are incompatible
+  constructor(private http: HttpClient, private log: Logger) {}
+  public static inject = tokens('logger', 'httpClient');
+  // ERROR! Types of parameters 'http' and 'args_0' are incompatible
 }
 
-const appInjector = rootInjector
-  .provideValue('logger', logger)
-  .provideClass('httpClient', HttpClient);
+const appInjector = rootInjector.provideValue('logger', logger).provideClass('httpClient', HttpClient);
 
 const myService = appInjector.injectClass(MyService);
 ```
 
 The error messages are a bit cryptic at times, but it sure is better than running into them at runtime.
-
 
 ## 💭 Motivation
 
@@ -116,11 +111,11 @@ InversifyJS is also _not_ type-safe. There is no check to see of the injected ty
 
 Type safe dependency injection works by combining awesome TypeScript features. Some of those features are:
 
-* [Literal types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#string-literal-types)
-* [Intersection types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#intersection-types)
-* [Mapped types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#mapped-types)
-* [Conditional types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#conditional-types)
-* [Rest parameters with tuple types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#rest-parameters-with-tuple-types)
+- [Literal types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#string-literal-types)
+- [Intersection types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#intersection-types)
+- [Mapped types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#mapped-types)
+- [Conditional types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#conditional-types)
+- [Rest parameters with tuple types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#rest-parameters-with-tuple-types)
 
 Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96) if you want to know how this works.
 
@@ -132,10 +127,14 @@ In order to do anything useful with the `rootInjector`, you'll need to create ch
 
 ```ts
 import { rootInjector, tokens } from 'typed-inject';
-function barFactory(foo: number){ return foo + 1};
+function barFactory(foo: number) {
+  return foo + 1;
+}
 barFactory.inject = tokens('foo');
 class Baz {
-  constructor(bar: number){ console.log(`bar is: ${bar}`)};
+  constructor(bar: number) {
+    console.log(`bar is: ${bar}`);
+  }
   static inject = tokens('bar');
 }
 
@@ -159,7 +158,7 @@ import { tokens, rootInjector } from 'typed-inject';
 
 class Foo {
   public bar() {
-    console.log ('bar!');
+    console.log('bar!');
   }
 }
 
@@ -174,9 +173,7 @@ function fooDecorator(foo: Foo) {
 }
 fooDecorator.inject = tokens('foo');
 
-const fooProvider = rootInjector
-  .provideClass('foo', Foo)
-  .provideFactory('foo', fooDecorator);
+const fooProvider = rootInjector.provideClass('foo', Foo).provideFactory('foo', fooDecorator);
 const foo = fooProvider.resolve('foo');
 
 foo.bar();
@@ -192,18 +189,18 @@ In this example above the `Foo` class is decorated by the `fooDecorator`.
 You can determine the lifecycle of dependencies with the third `Scope` parameter of `provideFactory` and `provideClass` methods.
 
 ```ts
-function loggerFactory(target: Function | null){
+function loggerFactory(target: Function | null) {
   return getLogger((target && target.name) || 'UNKNOWN');
 }
 loggerFactory.inject('target');
 class Foo {
-  constructor(public log: Logger) { log.info('Foo created'); }
+  constructor(public log: Logger) {
+    log.info('Foo created');
+  }
   static inject = tokens('log');
 }
 
-const fooProvider = injector
-  .provideFactory('log', loggerFactory, Scope.Transient)
-  .provideClass('foo', Foo, Scope.Singleton);
+const fooProvider = injector.provideFactory('log', loggerFactory, Scope.Transient).provideClass('foo', Foo, Scope.Singleton);
 const foo = fooProvider.resolve('foo');
 const fooCopy = fooProvider.resolve('foo');
 const log = fooProvider.resolve('log');
@@ -211,32 +208,36 @@ console.log(foo === fooCopy); // => true
 console.log(log === foo.log); // => false
 ```
 
-A scope has 2 possible values. 
+A scope has 2 possible values.
 
-* `Scope.Singleton` (default value)  
-Use `Scope.Singleton` to enable caching. Every time the dependency needs to be provided by the injector, the same instance is returned. Other injectors will still create their own instances, so it's only a `Singleton` for the specific injector (and child injectors created from it). In other words, 
-the instance will be _scoped to the `Injector`_
-* `Scope.Transient`  
-Use `Scope.Transient` to completely disable cashing. You'll always get fresh instances.
+- `Scope.Singleton` (default value)  
+  Use `Scope.Singleton` to enable caching. Every time the dependency needs to be provided by the injector, the same instance is returned. Other injectors will still create their own instances, so it's only a `Singleton` for the specific injector (and child injectors created from it). In other words,
+  the instance will be _scoped to the `Injector`_
+- `Scope.Transient`  
+  Use `Scope.Transient` to completely disable cashing. You'll always get fresh instances.
 
 ## 🚮 Disposing provided stuff
 
 Memory in JavaScript is garbage collected, so usually we don't care about cleaning up after ourselves. However, there might be a need to explicit clean up. For example removing a temp folder, or killing a child process.
 
-As `typed-inject` is responsible for creating (providing) your dependencies, it only makes sense it is also responsible for the disposing of them. 
+As `typed-inject` is responsible for creating (providing) your dependencies, it only makes sense it is also responsible for the disposing of them.
 
-Any `Injector` has a `dispose` method. If you call it, the injector in turn will call `dispose` on any instance that he provided (if it has one). 
+Any `Injector` has a `dispose` method. If you call it, the injector in turn will call `dispose` on any instance that he provided (if it has one).
 
 ```ts
 import { rootInjector } from 'typed-inject';
 
-class Foo { 
-  constructor() { console.log('Foo created'); }
-  dispose(){ console.log('Foo disposed');} 
+class Foo {
+  constructor() {
+    console.log('Foo created');
+  }
+  dispose() {
+    console.log('Foo disposed');
+  }
 }
 const fooProvider = rootInjector.provideClass('foo', Foo);
 fooProvider.resolve('foo'); // => "Foo created"
-await fooProvider.dispose() // => "Foo disposed"
+await fooProvider.dispose(); // => "Foo disposed"
 fooProvider.resolve('foo'); // Error: Injector already disposed
 ```
 
@@ -244,22 +245,22 @@ To help you implementing the `dispose` method correctly, `typed-inject` exports 
 
 ```ts
 import { Disposable } from 'typed-inject';
-class Foo implements Disposable { 
-  dispose(){ } 
+class Foo implements Disposable {
+  dispose() {}
 }
 ```
 
-Dispose methods are typically `async`. For example, you might need to clean up some files or get rid of a child process. 
+Dispose methods are typically `async`. For example, you might need to clean up some files or get rid of a child process.
 If you do so, your dependencies should return a promise from the `dispose` method. In turn, calling `dispose` on an `Injector` is always async.
 You are responsible for the correct handling of the async behavior of the `dispose` method.
 This means you should either `await` the result or attach `then`/`catch` handlers.
 
 ```ts
 import { rootInjector, Disposable } from 'typed-inject';
-class Foo implements Disposable { 
-  dispose(): Promise<void> { 
+class Foo implements Disposable {
+  dispose(): Promise<void> {
     return Promise.resolve();
-  } 
+  }
 }
 const fooProvider = rootInjector
   .provideClass('foo', Foo);
@@ -276,8 +277,8 @@ Using `dispose` on an injector will automatically dispose it's parent injectors 
 
 ```ts
 import { rootInjector } from 'typed-inject';
-class Foo { }
-class Bar { }
+class Foo {}
+class Bar {}
 const fooProvider = rootInjector.provideClass('foo', Foo);
 const barProvider = fooProvider.provideClass('bar', Bar);
 await barProvider.dispose(); // => fooProvider is also disposed!
@@ -289,17 +290,25 @@ Disposing of provided values is done in order of child first. So they are dispos
 ```ts
 import { rootInjector, tokens } from 'typed-inject';
 
-class Foo { dispose(){ console.log('Foo disposed');} }
-class Bar { dispose(){ console.log('Bar disposed');} }
-class Baz { 
+class Foo {
+  dispose() {
+    console.log('Foo disposed');
+  }
+}
+class Bar {
+  dispose() {
+    console.log('Bar disposed');
+  }
+}
+class Baz {
   static inject = tokens('foo', 'bar');
-  constructor(public foo: Foo, public bar: Bar) { }
+  constructor(public foo: Foo, public bar: Bar) {}
 }
 rootInjector
   .provideClass('foo', Foo)
   .provideClass('bar', Bar)
   .injectClass(Baz);
-await fooProvider.dispose(); 
+await fooProvider.dispose();
 // => "Foo disposed"
 // => "Bar disposed",
 ```
@@ -310,10 +319,10 @@ Any instance created with `injectClass` or `injectFactory` will _not_ be dispose
 
 Any `Injector` instance can always inject the following tokens:
 
-| Token name | Token value | Description |
-| - | - | - | 
-| `INJECTOR_TOKEN` | `'$injector'` | Injects the current injector |
-| `TARGET_TOKEN` | `'$target'` | The class or function in which the current values is injected, or `undefined` if resolved directly |  
+| Token name       | Token value   | Description                                                                                        |
+| ---------------- | ------------- | -------------------------------------------------------------------------------------------------- |
+| `INJECTOR_TOKEN` | `'$injector'` | Injects the current injector                                                                       |
+| `TARGET_TOKEN`   | `'$target'`   | The class or function in which the current values is injected, or `undefined` if resolved directly |
 
 An example:
 
@@ -321,13 +330,55 @@ An example:
 import { rootInjector, Injector, tokens, TARGET_TOKEN, INJECTOR_TOKEN } from 'typed-inject';
 
 class Foo {
-    constructor(injector: Injector<{}>, target: Function | undefined) {}
-    static inject = tokens(INJECTOR_TOKEN, TARGET_TOKEN);
+  constructor(injector: Injector<{}>, target: Function | undefined) {}
+  static inject = tokens(INJECTOR_TOKEN, TARGET_TOKEN);
 }
 
 const foo = rootInjector.inject(Foo);
 ```
 
+## 😬 Error handling
+
+When a runtime error occurs, typed inject will provide you with the exact path where the error occurred.
+
+```ts
+class GrandChild {
+  public baz = 'baz';
+  constructor() {
+    throw expectedCause;
+  }
+}
+class Child {
+  public bar = 'foo';
+  constructor(public grandchild: GrandChild) {}
+  public static inject = tokens('grandChild');
+}
+class Parent {
+  constructor(public readonly child: Child) {}
+  public static inject = tokens('child');
+}
+rootInjector
+  .provideClass('grandChild', GrandChild)
+  .provideClass('child', Child)
+  .injectClass(Parent);
+// => Error: Could not inject [class Parent] -> [token "child"] -> [class Child] -> [token "grandChild"] -> [class GrandChild]. Cause: Expected error
+```
+
+When you handle the error, you will be able to capture the original `cause`.
+
+```ts
+import { InjectionError } from 'typed-inject';
+try {
+  rootInjector
+    .provideClass('grandChild', GrandChild)
+    .provideClass('child', Child)
+    .injectClass(Parent);
+} catch (err) {
+  if (err instanceof InjectionError) {
+    console.error(err.cause.stack);
+  }
+}
+```
 
 ## 📖 API reference
 
@@ -345,13 +396,13 @@ Don't worry about reusing the `rootInjector` in your application. It is stateles
 
 #### `injector.injectClass(injectable: InjectableClass)`
 
-This method creates a new instance of class `injectable` and returns it. 
+This method creates a new instance of class `injectable` and returns it.
 When there are any problems in the dependency graph, it gives a compiler error.
 
 ```ts
 class Foo {
-    constructor(bar: number) { }
-    static inject = tokens('bar');
+  constructor(bar: number) {}
+  static inject = tokens('bar');
 }
 const foo /*: Foo*/ = injector.injectClass(Foo);
 ```
@@ -363,7 +414,7 @@ When there are any problems in the dependency graph, it gives a compiler error.
 
 ```ts
 function foo(bar: number) {
-    return bar + 1;
+  return bar + 1;
 }
 foo.inject = tokens('bar');
 const baz /*: number*/ = injector.injectFunction(Foo);
@@ -371,13 +422,13 @@ const baz /*: number*/ = injector.injectFunction(Foo);
 
 #### `injector.resolve(token: Token): CorrespondingType<TContext, Token>`
 
-The `resolve` method lets you resolve tokens by hand. 
+The `resolve` method lets you resolve tokens by hand.
 
 ```ts
 const foo = injector.resolve('foo');
 // Equivalent to:
-function retrieveFoo(foo: number){
-    return foo;
+function retrieveFoo(foo: number) {
+  return foo;
 }
 retrieveFoo.inject = tokens('foo');
 const foo2 = injector.injectFunction(retrieveFoo);
@@ -400,10 +451,10 @@ With `scope` you can decide whether the value must be cached after the factory i
 ```ts
 const fooInjector = injector.provideFactory('foo', () => 42);
 function loggerFactory(target: Function | undefined) {
-    return new Logger((target && target.name) || '');
+  return new Logger((target && target.name) || '');
 }
 loggerFactory.inject = tokens(TARGET_TOKEN);
-const fooBarInjector = fooInjector.provideFactory('logger', loggerFactory, Scope.Transient)
+const fooBarInjector = fooInjector.provideFactory('logger', loggerFactory, Scope.Transient);
 ```
 
 #### `injector.provideFactory(token: Token, Class: InjectableClass<TContext>, scope = Scope.Singleton): Injector<ChildContext<TContext, Token, R>>`
@@ -414,7 +465,7 @@ Scope is also supported here, for more info, see `provideFactory`.
 
 #### `injector.dispose(): Promise<void>`
 
-Use `dispose` to explicitly dispose the `injector`. It will call  `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). It will also await any promise that might have been returned by `dispose`. After that, it will `dispose` it's parent injector as well.
+Use `dispose` to explicitly dispose the `injector`. It will call `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). It will also await any promise that might have been returned by `dispose`. After that, it will `dispose` it's parent injector as well.
 
 _Note: this behavior changed since v2. Before v2, the parent injector was always disposed before the child injector._
 
@@ -422,11 +473,11 @@ After a child injector is disposed, you cannot us it any more. Any attempt to us
 
 The `rootInjector` will never be disposed.
 
-Disposing of your dependencies is always done asynchronously. You should take care to handle this appropriately. The best way to do that is to `await` the result of `myInjector.dispose()`. 
+Disposing of your dependencies is always done asynchronously. You should take care to handle this appropriately. The best way to do that is to `await` the result of `myInjector.dispose()`.
 
 ### `Scope`
 
-The `Scope` enum indicates the scope of a provided injectable (class or factory). Possible values: `Scope.Transient` (new injection per resolve) or `Scope.Singleton` (inject once, and reuse values). It generally defaults to `Singleton`. 
+The `Scope` enum indicates the scope of a provided injectable (class or factory). Possible values: `Scope.Transient` (new injection per resolve) or `Scope.Singleton` (inject once, and reuse values). It generally defaults to `Singleton`.
 
 ### `tokens`
 
@@ -462,18 +513,54 @@ Comparable to `InjectableClass`, but for (non-constructor) functions.
 You can implement the `Disposable` interface in your dependencies. It looks like this:
 
 ```ts
-interface Disposable { 
+interface Disposable {
   dispose(): void;
 }
 ```
 
-With this, you can let the `Injector` call [your dispose method](#-disposing-provided-stuff). 
+With this, you can let the `Injector` call [your dispose method](#-disposing-provided-stuff).
 
 _Note:_ This is just a convenience interface. Due to TypeScripts structural typing system `typed-inject` calls your `dispose` method without you having to explicitly implement it.
+
+### `InjectionError`
+
+The error class of which instances are thrown when an error occurs during injection or dependency resolving.
+
+An example:
+
+```ts
+const explosion = new Error('boom!');
+class Boom {
+  constructor() {
+    throw explosion;
+  }
+}
+class Prison {
+  constructor(public readonly child: Boom) {}
+  public static inject = tokens('boom');
+}
+try {
+  rootInjector.provideClass('boom', Boom).injectClass(Prison);
+} catch (error) {
+  if (error instanceof InjectionError) {
+    error.path[0] === Prison;
+    error.path[1] === 'boom';
+    error.path[2] === Boom;
+    error.cause === explosion;
+  }
+}
+```
+
+#### `InjectionError.path`
+
+This will contain the path that was taken to get to the error.
+
+#### `InjectionError.cause`
+
+The original cause of the injection error.
 
 ## 🤝 Commendation
 
 This entire framework would not be possible without the awesome guys working on TypeScript. Guys like [Ryan](https://github.com/RyanCavanaugh), [Anders](https://github.com/ahejlsberg) and the rest of the team: a heartfelt thanks! 💖
 
 Inspiration for the API with static `inject` method comes from years long AngularJS development. Special thanks to the Angular team.
-

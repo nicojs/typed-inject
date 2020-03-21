@@ -6,7 +6,7 @@ import { Injector } from '../../src/api/Injector';
 import { tokens } from '../../src/tokens';
 import { rootInjector } from '../../src/InjectorImpl';
 import { TARGET_TOKEN, INJECTOR_TOKEN } from '../../src/api/InjectionToken';
-import { Exception } from '../../src/Exception';
+import { InjectionError, InjectorDisposedError } from '../../src/errors';
 import { Scope } from '../../src/api/Scope';
 import * as sinon from 'sinon';
 import { Disposable } from '../../src/api/Disposable';
@@ -109,8 +109,8 @@ describe('InjectorImpl', () => {
         public static inject = tokens('foo');
       }
       expect(() => rootInjector.injectClass(FooInjectable as any)).throws(
-        Exception,
-        'Could not inject "FooInjectable". Inner error: No provider found for "foo"!'
+        InjectionError,
+        'Could not inject [class FooInjectable]. Cause: No provider found for "foo"!'
       );
     });
 
@@ -119,7 +119,10 @@ describe('InjectorImpl', () => {
         return bar;
       }
       foo.inject = ['bar'];
-      expect(() => rootInjector.injectFunction(foo as any)).throws(Exception, 'Could not inject "foo". Inner error: No provider found for "bar"!');
+      expect(() => rootInjector.injectFunction(foo as any)).throws(
+        InjectionError,
+        'Could not inject [function foo]. Cause: No provider found for "bar"!'
+      );
     });
 
     it('should be able to provide an Injector for a partial context', () => {
@@ -197,11 +200,15 @@ describe('InjectorImpl', () => {
     it('should throw after disposed', () => {
       const sut = rootInjector.provideValue('foo', 42);
       sut.dispose();
-      expect(() => sut.resolve('foo')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve "foo".');
-      expect(() => sut.injectClass(class Bar {})).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
-      expect(() => sut.injectFunction(function baz() {})).throws(
-        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".'
-      );
+      expect(() => sut.resolve('foo'))
+        .throws(InjectorDisposedError)
+        .which.includes({ message: 'Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "foo"].' });
+      expect(() => sut.injectClass(class Bar {}))
+        .throws(InjectorDisposedError)
+        .which.includes({ message: "Injector is already disposed. Please don't use it anymore. Tried to inject [class Bar]." });
+      expect(() => sut.injectFunction(function baz() {}))
+        .throws(InjectorDisposedError)
+        .which.includes({ message: "Injector is already disposed. Please don't use it anymore. Tried to inject [function baz]." });
     });
   });
 
@@ -241,10 +248,10 @@ describe('InjectorImpl', () => {
         return 42;
       });
       sut.dispose();
-      expect(() => sut.resolve('answer')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve "answer".');
-      expect(() => sut.injectClass(class Bar {})).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
+      expect(() => sut.resolve('answer')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "answer"].');
+      expect(() => sut.injectClass(class Bar {})).throws("Injector is already disposed. Please don't use it anymore. Tried to inject [class Bar].");
       expect(() => sut.injectFunction(function baz() {})).throws(
-        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".'
+        "Injector is already disposed. Please don't use it anymore. Tried to inject [function baz]."
       );
     });
 
@@ -274,10 +281,10 @@ describe('InjectorImpl', () => {
     it('should throw after disposed', () => {
       const sut = rootInjector.provideClass('foo', class Foo {});
       sut.dispose();
-      expect(() => sut.resolve('foo')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve "foo".');
-      expect(() => sut.injectClass(class Bar {})).throws('Injector is already disposed. Please don\'t use it anymore. Tried to inject "Bar".');
+      expect(() => sut.resolve('foo')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "foo"].');
+      expect(() => sut.injectClass(class Bar {})).throws("Injector is already disposed. Please don't use it anymore. Tried to inject [class Bar].");
       expect(() => sut.injectFunction(function baz() {})).throws(
-        'Injector is already disposed. Please don\'t use it anymore. Tried to inject "baz".'
+        "Injector is already disposed. Please don't use it anymore. Tried to inject [function baz]."
       );
     });
 
@@ -506,6 +513,42 @@ describe('InjectorImpl', () => {
       expect(actual.child.grandchild.log).eq(expectedLogger);
       expect(actual.child.grandchild.baz).eq('qux');
       expect(actual.log).eq(expectedLogger);
+    });
+
+    it('should throw an Injection error with correct message when injection failed with a runtime error', () => {
+      // Arrange
+      const expectedCause = Error('Expected error');
+      class GrandChild {
+        public baz = 'baz';
+        constructor() {
+          throw expectedCause;
+        }
+      }
+      class Child {
+        public bar = 'foo';
+        constructor(public grandchild: GrandChild) {}
+        public static inject = tokens('grandChild');
+      }
+      class Parent {
+        constructor(public readonly child: Child) {}
+        public static inject = tokens('child');
+      }
+
+      // Act
+      const act = () =>
+        rootInjector
+          .provideClass('grandChild', GrandChild)
+          .provideClass('child', Child)
+          .injectClass(Parent);
+
+      // Assert
+      expect(act)
+        .throws(InjectionError)
+        .which.deep.includes({
+          message:
+            'Could not inject [class Parent] -> [token "child"] -> [class Child] -> [token "grandChild"] -> [class GrandChild]. Cause: Expected error',
+          path: [Parent, 'child', Child, 'grandChild', GrandChild]
+        });
     });
   });
 });
