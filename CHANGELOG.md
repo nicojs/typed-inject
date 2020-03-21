@@ -1,3 +1,17 @@
+# [2.2.0](https://github.com/nicojs/typed-inject/compare/v2.1.1...v2.2.0) (2020-03-21)
+
+
+### Bug Fixes
+
+* **deps:** move typescript to devDependencies ([17532cd](https://github.com/nicojs/typed-inject/commit/17532cd465a282919075a1e2e0d7361fb0122408))
+
+
+### Features
+
+* **error handling:** add a way to handle errors ([dbe3bfd](https://github.com/nicojs/typed-inject/commit/dbe3bfde8b63c6bcb7053dfe12c2bed2b49f53dd))
+
+
+
 ## [2.1.1](https://github.com/nicojs/typed-inject/compare/v2.1.0...v2.1.1) (2019-09-12)
 
 
