@@ -1,17 +1,4 @@
 {
-  "files.exclude": {
-    "src/**/*.map": true,
-    "test/**/*.map": true,
-    "src/**/*.d.ts": true,
-    "test/**/*.d.ts": true,
-    "test/**/*.js": {
-      "when": "$(basename).ts"
-    },
-    "src/**/*.js": {
-      "when": "$(basename).ts"
-    },
-    "*.tsbuildinfo": true
-  },
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },

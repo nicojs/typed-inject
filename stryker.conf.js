@@ -9,9 +9,9 @@ module.exports = function(config) {
     testFramework: 'mocha',
     coverageAnalysis: 'perTest',
     tsconfigFile: 'tsconfig.lint.json',
-    mutate: ['src/**/*.ts', '!src/**/*.d.ts'],
+    mutate: ['src/**/*.ts'],
     mochaOptions: {
-      spec: ['test/helpers/**/*.js', 'test/unit/**/*.js']
+      spec: ['dist/test/helpers/**/*.js', 'dist/test/unit/**/*.js']
     },
     maxConcurrentTestRunners: 2,
     thresholds: {
