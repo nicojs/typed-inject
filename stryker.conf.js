@@ -9,7 +9,7 @@ module.exports = function(config) {
     testFramework: 'mocha',
     coverageAnalysis: 'perTest',
     tsconfigFile: 'tsconfig.lint.json',
-    mutate: ['src/**/*.ts', '!src/**/*.d.ts'],
+    mutate: ['src/**/*.ts'],
     mochaOptions: {
       spec: ['dist/test/helpers/**/*.js', 'dist/test/unit/**/*.js']
     },
