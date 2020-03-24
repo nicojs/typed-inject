@@ -48,7 +48,7 @@ _Note: this package uses advanced TypeScript features. Only TS 3.0 and above is 
 
 _Note: due to a [bug in TypeScript 3.8](https://github.com/microsoft/TypeScript/issues/37400) there is a small chance that the compiler [doesn't catch all errors](https://github.com/nicojs/typed-inject/issues/20) (as well as you might experience some performance issues)._
 
-<a name="Usage"></a>
+<a name="usage"></a>
 
 ## 🎁 Usage
 
