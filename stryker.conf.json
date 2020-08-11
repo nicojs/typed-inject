@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress",
+    "dashboard"
+  ],
+  "testRunner": "mocha",
+  "coverageAnalysis": "perTest",
+  "tsconfigFile": "tsconfig.json",
+  "mutate": [
+    "src/**/*.ts"
+  ],
+  "checkers": [
+    "typescript"
+  ],
+  "buildCommand": "tsc -b",
+  "mochaOptions": {
+    "spec": [
+      "dist/test/helpers/**/*.js",
+      "dist/test/unit/**/*.js"
+    ]
+  },
+  "concurrency": 4,
+  "thresholds": {
+    "high": 90,
+    "low": 80,
+    "break": 92
+  }
+}                                     
