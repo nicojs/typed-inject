@@ -47,7 +47,7 @@ export class InjectionError extends TypedInjectError {
     super(`Could not ${describeInjectAction(path[0])} ${path.map(name).join(' -> ')}. Cause: ${cause.message}`);
   }
 
-  static create(target: InjectionTarget, error: Error) {
+  static create(target: InjectionTarget, error: Error): InjectionError {
     if (error instanceof InjectionError) {
       return new InjectionError([target, ...error.path], error.cause);
     } else {

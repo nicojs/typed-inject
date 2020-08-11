@@ -66,10 +66,7 @@ describe('InjectorImpl', () => {
       }
 
       // Act
-      const actualFoo = rootInjector
-        .provideFactory('fooName', fooFactory)
-        .provideFactory('name', barFactory)
-        .injectClass(Foo);
+      const actualFoo = rootInjector.provideFactory('fooName', fooFactory).provideFactory('name', barFactory).injectClass(Foo);
 
       // Assert
       expect(actualFoo.name).eq('foo -> barFactory -> bar -> Foo');
@@ -92,10 +89,7 @@ describe('InjectorImpl', () => {
       }
 
       // Act
-      const actualBaz = rootInjector
-        .provideClass('foo', Foo)
-        .provideClass('bar', Bar)
-        .injectClass(Baz);
+      const actualBaz = rootInjector.provideClass('foo', Foo).provideClass('bar', Bar).injectClass(Baz);
 
       // Assert
       expect(actualBaz.target).undefined;
@@ -197,9 +191,9 @@ describe('InjectorImpl', () => {
       expect(sut.resolve('bar')).eq('baz');
       expect(sut.resolve('foo')).eq(42);
     });
-    it('should throw after disposed', () => {
+    it('should throw after disposed', async () => {
       const sut = rootInjector.provideValue('foo', 42);
-      sut.dispose();
+      await sut.dispose();
       expect(() => sut.resolve('foo'))
         .throws(InjectorDisposedError)
         .which.includes({ message: 'Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "foo"].' });
@@ -243,11 +237,11 @@ describe('InjectorImpl', () => {
       expect(actual.answer).eq(42);
     });
 
-    it('should throw after disposed', () => {
+    it('should throw after disposed', async () => {
       const sut = rootInjector.provideFactory('answer', function answer() {
         return 42;
       });
-      sut.dispose();
+      await sut.dispose();
       expect(() => sut.resolve('answer')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "answer"].');
       expect(() => sut.injectClass(class Bar {})).throws("Injector is already disposed. Please don't use it anymore. Tried to inject [class Bar].");
       expect(() => sut.injectFunction(function baz() {})).throws(
@@ -278,9 +272,9 @@ describe('InjectorImpl', () => {
   });
 
   describe('ClassProvider', () => {
-    it('should throw after disposed', () => {
+    it('should throw after disposed', async () => {
       const sut = rootInjector.provideClass('foo', class Foo {});
-      sut.dispose();
+      await sut.dispose();
       expect(() => sut.resolve('foo')).throws('Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "foo"].');
       expect(() => sut.injectClass(class Bar {})).throws("Injector is already disposed. Please don't use it anymore. Tried to inject [class Bar].");
       expect(() => sut.injectFunction(function baz() {})).throws(
@@ -297,10 +291,7 @@ describe('InjectorImpl', () => {
         public answer: number;
       }
 
-      const answerProvider = rootInjector
-        .provideValue('answer', { answer: 40 })
-        .provideClass('answer', Foo)
-        .provideClass('answer', Foo);
+      const answerProvider = rootInjector.provideValue('answer', { answer: 40 }).provideClass('answer', Foo).provideClass('answer', Foo);
 
       expect(answerProvider.resolve('answer').answer).eq(42);
     });
@@ -535,11 +526,7 @@ describe('InjectorImpl', () => {
       }
 
       // Act
-      const act = () =>
-        rootInjector
-          .provideClass('grandChild', GrandChild)
-          .provideClass('child', Child)
-          .injectClass(Parent);
+      const act = () => rootInjector.provideClass('grandChild', GrandChild).provideClass('child', Child).injectClass(Parent);
 
       // Assert
       expect(act)
@@ -547,7 +534,7 @@ describe('InjectorImpl', () => {
         .which.deep.includes({
           message:
             'Could not inject [class Parent] -> [token "child"] -> [class Child] -> [token "grandChild"] -> [class GrandChild]. Cause: Expected error',
-          path: [Parent, 'child', Child, 'grandChild', GrandChild]
+          path: [Parent, 'child', Child, 'grandChild', GrandChild],
         });
     });
   });

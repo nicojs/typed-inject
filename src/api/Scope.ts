@@ -1,4 +1,4 @@
 export enum Scope {
   Transient = 'transient',
-  Singleton = 'singleton'
+  Singleton = 'singleton',
 }
