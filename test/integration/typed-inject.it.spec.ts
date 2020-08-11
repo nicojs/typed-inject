@@ -4,7 +4,7 @@ import ts = require('typescript');
 import { expect } from 'chai';
 
 describe('typed-inject', () => {
-  fs.readdirSync(testResource()).forEach(tsFile => {
+  fs.readdirSync(testResource()).forEach((tsFile) => {
     it(path.basename(tsFile), async () => {
       const fileName = testResource(tsFile);
       const firstLine = await readFirstLine(fileName);
@@ -27,12 +27,12 @@ function findActualError(fileName: string) {
       module: ts.ModuleKind.ES2015,
       strict: true,
       target: ts.ScriptTarget.ESNext,
-      types: ['node']
+      types: ['node'],
     },
     undefined,
     program
   );
-  const diagnostics = ts.getPreEmitDiagnostics(program).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+  const diagnostics = ts.getPreEmitDiagnostics(program).map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
   expect(diagnostics.length).lessThan(2, diagnostics.join(', '));
   return diagnostics[0];
 }

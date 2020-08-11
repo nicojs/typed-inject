@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Scope } from './api/Scope';
 import { InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken';
 import { InjectableClass, InjectableFunction, Injectable } from './api/Injectable';
@@ -58,7 +61,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     target?: Function
   ): any[] {
     const tokens: InjectionToken<TContext>[] = (injectable as any).inject || [];
-    return tokens.map(key => {
+    return tokens.map((key) => {
       switch (key) {
         case TARGET_TOKEN:
           return target as any;
@@ -143,7 +146,7 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
   }
 
   private async disposeInjectedValues() {
-    const promisesToAwait = [...this.disposables.values()].map(disposable => disposable.dispose());
+    const promisesToAwait = [...this.disposables.values()].map((disposable) => disposable.dispose());
     await Promise.all(promisesToAwait);
   }
 

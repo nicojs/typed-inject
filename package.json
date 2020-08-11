@@ -7,7 +7,7 @@
     "all": "npm run clean && npm run lint && npm run build && npm run test && npm run stryker",
     "start": "tsc -b -w",
     "clean": "rimraf dist",
-    "lint": "eslint . --ext .js,.ts --ignore-path .gitignore --ignore-pattern testResources/**/*.ts --ignore-pattern stryker.conf.js",
+    "lint": "eslint . --ext .js,.ts --ignore-path .gitignore --ignore-pattern testResources/**/*.ts --ignore-pattern stryker.conf.js --ignore-pattern .eslintrc.js",
     "build": "tsc -b",
     "test": "nyc --exclude-after-remap=false \"--exclude=dist/test/**/*.js\" --check-coverage --reporter=html --report-dir=reports/coverage --lines 100 --functions 100 --branches 100 npm run mocha",
     "mocha": "mocha \"dist/test/helpers/**/*.js\" \"dist/test/unit/**/*.js\" && mocha --timeout 20000 \"dist/test/helpers/**/*.js\" \"dist/test/integration/**/*.js\"",

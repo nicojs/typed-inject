@@ -11,6 +11,6 @@ export class Task {
   }
 }
 
-export function tick() {
-  return new Promise(res => setTimeout(res));
+export function tick(): Promise<void> {
+  return new Promise((res) => setTimeout(res));
 }
