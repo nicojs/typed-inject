@@ -9,6 +9,6 @@ export type CorrespondingType<TContext, T extends InjectionToken<TContext>> = T 
   ? TContext[T]
   : never;
 
-export type CorrespondingTypes<TContext, TS extends InjectionToken<TContext>[]> = {
+export type CorrespondingTypes<TContext, TS extends readonly InjectionToken<TContext>[]> = {
   [K in keyof TS]: TS[K] extends InjectionToken<TContext> ? CorrespondingType<TContext, TS[K]> : never;
 };

@@ -7,6 +7,6 @@
  * ```
  * @param tokens The tokens as args
  */
-export function tokens<TS extends string[]>(...tokens: TS): TS {
+export function tokens<TS extends readonly string[]>(...tokens: TS): TS {
   return tokens;
 }
