@@ -36,6 +36,8 @@ const DEFAULT_SCOPE = Scope.Singleton;
 */
 
 abstract class AbstractInjector<TContext> implements Injector<TContext> {
+  private childInjectors: Injector<any>[] = [];
+
   public injectClass<R, Tokens extends InjectionToken<TContext>[]>(Class: InjectableClass<TContext, R, Tokens>, providedIn?: Function): R {
     this.throwIfDisposed(Class);
     try {
@@ -74,7 +76,10 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
   }
 
   public provideValue<Token extends string, R>(token: Token, value: R): AbstractInjector<TChildContext<TContext, R, Token>> {
-    return new ValueProvider(this, token, value);
+    this.throwIfDisposed(token);
+    const provider = new ValueProvider(this, token, value);
+    this.childInjectors.push(provider as Injector<any>);
+    return provider;
   }
 
   public provideClass<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
@@ -82,14 +87,20 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     Class: InjectableClass<TContext, R, Tokens>,
     scope = DEFAULT_SCOPE
   ): AbstractInjector<TChildContext<TContext, R, Token>> {
-    return new ClassProvider(this, token, scope, Class);
+    this.throwIfDisposed(token);
+    const provider = new ClassProvider(this, token, scope, Class);
+    this.childInjectors.push(provider as Injector<any>);
+    return provider;
   }
   public provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
     token: Token,
     factory: InjectableFunction<TContext, R, Tokens>,
     scope = DEFAULT_SCOPE
   ): AbstractInjector<TChildContext<TContext, R, Token>> {
-    return new FactoryProvider(this, token, scope, factory);
+    this.throwIfDisposed(token);
+    const provider = new FactoryProvider(this, token, scope, factory);
+    this.childInjectors.push(provider as Injector<any>);
+    return provider;
   }
 
   public resolve<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token] {
@@ -103,9 +114,18 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     }
   }
 
-  protected abstract get isDisposed(): boolean;
+  private isDisposed = false;
 
-  public abstract dispose(): Promise<void>;
+  public async dispose() {
+    if (!this.isDisposed) {
+      this.isDisposed = true; // be sure new disposables aren't added while we're disposing
+      await Promise.all(this.childInjectors.map((child) => child.dispose()));
+      while (this.childInjectors.pop()); // Don't keep the references, might cause a memory leak
+      await this.disposeInjectedValues();
+    }
+  }
+
+  protected abstract disposeInjectedValues(): Promise<void>;
 
   protected abstract resolveInternal<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token];
 }
@@ -114,11 +134,8 @@ class RootInjector extends AbstractInjector<{}> {
   public resolveInternal(token: never): never {
     throw new Error(`No provider found for "${token}"!.`);
   }
-  public dispose() {
+  protected disposeInjectedValues() {
     return Promise.resolve();
-  }
-  get isDisposed() {
-    return false;
   }
 }
 
@@ -134,18 +151,7 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
 
   protected abstract result(target: Function | undefined): TProvided;
 
-  protected isDisposed = false;
-
-  public async dispose() {
-    if (!this.isDisposed) {
-      this.isDisposed = true; // be sure new disposables aren't added while we're disposing
-      await this.disposeInjectedValues();
-      this.disposables.clear();
-      await this.parent.dispose();
-    }
-  }
-
-  private async disposeInjectedValues() {
+  protected async disposeInjectedValues() {
     const promisesToAwait = [...this.disposables.values()].map((disposable) => disposable.dispose());
     await Promise.all(promisesToAwait);
   }
@@ -230,4 +236,6 @@ class ClassProvider<TParentContext, TProvided, ProvidedToken extends string, Tok
   }
 }
 
-export const rootInjector: Injector<{}> = new RootInjector();
+export function createInjector(): Injector<{}> {
+  return new RootInjector();
+}
