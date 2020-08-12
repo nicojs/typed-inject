@@ -4,7 +4,7 @@
 import { expect } from 'chai';
 import { Injector } from '../../src/api/Injector';
 import { tokens } from '../../src/tokens';
-import { rootInjector } from '../../src/InjectorImpl';
+import { createInjector } from '../../src/InjectorImpl';
 import { TARGET_TOKEN, INJECTOR_TOKEN } from '../../src/api/InjectionToken';
 import { InjectionError, InjectorDisposedError } from '../../src/errors';
 import { Scope } from '../../src/api/Scope';
@@ -12,7 +12,13 @@ import * as sinon from 'sinon';
 import { Disposable } from '../../src/api/Disposable';
 import { Task, tick } from '../helpers/Task';
 
-describe('InjectorImpl', () => {
+describe.only('InjectorImpl', () => {
+  let rootInjector: Injector<{}>;
+
+  beforeEach(() => {
+    rootInjector = createInjector();
+  });
+
   describe('AbstractInjector', () => {
     it('should be able to inject injector and target in a class', () => {
       // Arrange
@@ -297,7 +303,7 @@ describe('InjectorImpl', () => {
     });
   });
 
-  describe(rootInjector.dispose.name, () => {
+  describe('dispose', () => {
     it('should dispose all disposable singleton dependencies', async () => {
       // Arrange
       class Foo {
@@ -311,11 +317,10 @@ describe('InjectorImpl', () => {
         constructor(public readonly bar: Disposable & { dispose3(): void }, public readonly foo: Foo) {}
         public static inject = tokens('bar', 'foo');
       }
-      const bazInjector = rootInjector.provideClass('foo', Foo).provideFactory('bar', barFactory);
-      const baz = bazInjector.injectClass(Baz);
+      const baz = rootInjector.provideClass('foo', Foo).provideFactory('bar', barFactory).injectClass(Baz);
 
       // Act
-      await bazInjector.dispose();
+      await rootInjector.dispose();
 
       // Assert
       expect(baz.bar.dispose).called;
@@ -335,11 +340,10 @@ describe('InjectorImpl', () => {
         constructor(public readonly bar: Disposable, public readonly foo: Foo) {}
         public static inject = tokens('bar', 'foo');
       }
-      const bazInjector = rootInjector.provideClass('foo', Foo, Scope.Transient).provideFactory('bar', barFactory, Scope.Transient);
-      const baz = bazInjector.injectClass(Baz);
+      const baz = rootInjector.provideClass('foo', Foo, Scope.Transient).provideFactory('bar', barFactory, Scope.Transient).injectClass(Baz);
 
       // Act
-      await bazInjector.dispose();
+      await rootInjector.dispose();
 
       // Assert
       expect(baz.bar.dispose).called;
@@ -366,7 +370,7 @@ describe('InjectorImpl', () => {
       const newGrandparent = bazProvider.resolve('grandparent');
 
       // Act
-      await bazProvider.dispose();
+      await rootInjector.dispose();
 
       // Assert
       expect(child.parent.dispose).calledBefore(child.grandparent.dispose);
@@ -457,6 +461,49 @@ describe('InjectorImpl', () => {
       foo.task.resolve();
       await promise;
       expect(resolved).true;
+    });
+
+    it("should dispose it's child providers", async () => {
+      // Arrange
+      const fooDisposeStub = sinon.stub();
+      class Foo {
+        public dispose() {
+          fooDisposeStub();
+        }
+      }
+      const fooProvider = rootInjector.provideClass('foo', Foo);
+      fooProvider.resolve('foo');
+
+      // Act
+      await rootInjector.dispose();
+
+      // Assert
+      expect(fooDisposeStub).called;
+    });
+
+    it("should not dispose it's parent provider", async () => {
+      // Arrange
+      class Grandparent {
+        public dispose = sinon.stub();
+      }
+      class Parent {
+        public dispose = sinon.stub();
+      }
+      class Child {
+        constructor(public readonly parent: Parent, public readonly grandparent: Grandparent) {}
+        public static inject = tokens('parent', 'grandparent');
+        public dispose = sinon.stub();
+      }
+      const parentProvider = rootInjector.provideClass('grandparent', Grandparent, Scope.Transient).provideClass('parent', Parent);
+      const childProvider = parentProvider.provideClass('child', Child);
+      const child = childProvider.resolve('child');
+
+      // Act
+      await childProvider.dispose();
+
+      // Assert
+      expect(child.dispose).called;
+      expect(child.parent.dispose).not.called;
     });
   });
 

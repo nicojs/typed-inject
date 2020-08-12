@@ -1,5 +1,5 @@
 // error: false
-import { rootInjector } from '../src/index';
+import { createInjector } from '../src/index';
 
 class Baz {
   public baz = 'baz';
@@ -15,6 +15,6 @@ class Foo {
   public static inject = ['bar', 'baz', 'qux'] as const;
 }
 
-const fooInjector = rootInjector.provideValue('qux', true).provideClass('baz', Baz).provideFactory('bar', bar);
+const fooInjector = createInjector().provideValue('qux', true).provideClass('baz', Baz).provideFactory('bar', bar);
 
 const foo: Foo = fooInjector.injectClass(Foo);
