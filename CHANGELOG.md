@@ -1,3 +1,44 @@
+# [3.0.0](https://github.com/nicojs/typed-inject/compare/v2.2.0...v3.0.0) (2020-08-12)
+
+
+### Bug Fixes
+
+* **dist:** distribute ts alongside dist js code ([#21](https://github.com/nicojs/typed-inject/issues/21)) ([0b178b5](https://github.com/nicojs/typed-inject/commit/0b178b5f8fa919a421e96d22f30e28ab179a2417))
+
+
+### Features
+
+* **as const:** allow to declare tokens as const ([#27](https://github.com/nicojs/typed-inject/issues/27)) ([05435b7](https://github.com/nicojs/typed-inject/commit/05435b7c5018d30a0df7a8f06948284cd678262b))
+* **dispose:** dispose child injectors ([#29](https://github.com/nicojs/typed-inject/issues/29)) ([3f0f3f5](https://github.com/nicojs/typed-inject/commit/3f0f3f58f990a2f68e9545c5c0f0ba7b2c3a50b7))
+* **maintanance:** drop node 8 support ([#28](https://github.com/nicojs/typed-inject/issues/28)) ([cdf3c30](https://github.com/nicojs/typed-inject/commit/cdf3c3046fd320d63be3e950d15d31b83d2679ec))
+
+
+### BREAKING CHANGES
+
+* **dispose:** `rootInjector` is removed in favor of `createInjector`.
+
+This:
+
+```
+import { rootInjector } from 'typed-inject';
+```
+
+Becomes:
+
+```
+import { createInjector } from 'typed-inject';
+const rootInjector = createInjector();
+```
+
+Injector's created from `createInjector` are no longer stateless. They
+keep track of their child injectors.
+* **dispose:** `dispose` no longer disposes parent injector, disposes
+the child injectors instead. See readme for more details.
+* **maintanance:** Node 8 is no longer supported.
+* **as const:** The typed-inject is now expecting tokens to be provided in a `readonly` array. You can either use `as const` or the `tokens` helper function for it.
+
+
+
 ## [2.2.1](https://github.com/nicojs/typed-inject/compare/v2.2.0...v2.2.1) (2020-03-22)
 
 
