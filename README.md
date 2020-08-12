@@ -55,7 +55,7 @@ _Note: due to a [bug in TypeScript 3.8](https://github.com/microsoft/TypeScript/
 An example:
 
 ```ts
-import { rootInjector, tokens } from 'typed-inject';
+import { rootInjector } from 'typed-inject';
 
 interface Logger {
   info(message: string): void;
@@ -69,12 +69,12 @@ const logger: Logger = {
 
 class HttpClient {
   constructor(private log: Logger) {}
-  public static inject = tokens('logger');
+  public static inject = ['logger'] as const;
 }
 
 class MyService {
   constructor(private http: HttpClient, private log: Logger) {}
-  public static inject = tokens('httpClient', 'logger');
+  public static inject = ['httpClient', 'logger'] as const;
 }
 
 const appInjector = rootInjector.provideValue('logger', logger).provideClass('httpClient', HttpClient);
@@ -93,7 +93,7 @@ Dependencies are resolved using the static `inject` property on their classes. T
 Expect compiler errors when you mess up the order of tokens or forget it completely.
 
 ```ts
-import { rootInjector, tokens } from 'typed-inject';
+import { rootInjector } from 'typed-inject';
 
 // Same logger as before
 
@@ -104,7 +104,7 @@ class HttpClient {
 
 class MyService {
   constructor(private http: HttpClient, private log: Logger) {}
-  public static inject = tokens('logger', 'httpClient');
+  public static inject = ['logger', 'httpClient'] as const;
   // ERROR! Types of parameters 'http' and 'args_0' are incompatible
 }
 
@@ -152,16 +152,16 @@ The `Injector` interface is responsible for injecting classes or functions. Howe
 In order to do anything useful with the `rootInjector`, you'll need to create child injectors. This what you do with the `provideXXX` methods.
 
 ```ts
-import { rootInjector, tokens } from 'typed-inject';
+import { rootInjector } from 'typed-inject';
 function barFactory(foo: number) {
   return foo + 1;
 }
-barFactory.inject = tokens('foo');
+barFactory.inject = ['foo'] as const;
 class Baz {
   constructor(bar: number) {
     console.log(`bar is: ${bar}`);
   }
-  static inject = tokens('bar');
+  static inject = ['bar'] as const;
 }
 
 const childInjector = rootInjector
@@ -182,7 +182,7 @@ any ChildInjector _is stateful_. For example, it can [cache the injected value](
 A common use case for dependency injection is the [decorator design pattern](https://en.wikipedia.org/wiki/Decorator_pattern). It is used to dynamically add functionality to existing dependencies. Typed inject supports decoration of existing dependencies using its `provideFactory` and `provideClass` methods.
 
 ```ts
-import { tokens, rootInjector } from 'typed-inject';
+import { rootInjector } from 'typed-inject';
 
 class Foo {
   public bar() {
@@ -199,7 +199,7 @@ function fooDecorator(foo: Foo) {
     }
   };
 }
-fooDecorator.inject = tokens('foo');
+fooDecorator.inject = ['foo'] as const;
 
 const fooProvider = rootInjector.provideClass('foo', Foo).provideFactory('foo', fooDecorator);
 const foo = fooProvider.resolve('foo');
@@ -227,7 +227,7 @@ class Foo {
   constructor(public log: Logger) {
     log.info('Foo created');
   }
-  static inject = tokens('log');
+  static inject = ['log'] as const;
 }
 
 const fooProvider = injector.provideFactory('log', loggerFactory, Scope.Transient).provideClass('foo', Foo, Scope.Singleton);
@@ -320,7 +320,7 @@ fooProvider.resolve('foo'); // => Error: Injector already disposed
 Disposing of provided values is done in order of child first. So they are disposed in the opposite order of respective `providedXXX` calls (like a stack):
 
 ```ts
-import { rootInjector, tokens } from 'typed-inject';
+import { rootInjector} from 'typed-inject';
 
 class Foo {
   dispose() {
@@ -333,7 +333,7 @@ class Bar {
   }
 }
 class Baz {
-  static inject = tokens('foo', 'bar');
+  static inject = ['foo', 'bar'] as const;
   constructor(public foo: Foo, public bar: Bar) {}
 }
 rootInjector
@@ -361,11 +361,11 @@ Any `Injector` instance can always inject the following tokens:
 An example:
 
 ```ts
-import { rootInjector, Injector, tokens, TARGET_TOKEN, INJECTOR_TOKEN } from 'typed-inject';
+import { rootInjector, Injector, TARGET_TOKEN, INJECTOR_TOKEN } from 'typed-inject';
 
 class Foo {
   constructor(injector: Injector<{}>, target: Function | undefined) {}
-  static inject = tokens(INJECTOR_TOKEN, TARGET_TOKEN);
+  static inject = [INJECTOR_TOKEN, TARGET_TOKEN] as const;
 }
 
 const foo = rootInjector.inject(Foo);
@@ -387,11 +387,11 @@ class GrandChild {
 class Child {
   public bar = 'foo';
   constructor(public grandchild: GrandChild) {}
-  public static inject = tokens('grandChild');
+  public static inject = ['grandChild'] as const;
 }
 class Parent {
   constructor(public readonly child: Child) {}
-  public static inject = tokens('child');
+  public static inject = ['child'] as const;
 }
 rootInjector
   .provideClass('grandChild', GrandChild)
@@ -440,7 +440,7 @@ When there are any problems in the dependency graph, it gives a compiler error.
 ```ts
 class Foo {
   constructor(bar: number) {}
-  static inject = tokens('bar');
+  static inject = ['bar'] as const;
 }
 const foo /*: Foo*/ = injector.injectClass(Foo);
 ```
@@ -454,7 +454,7 @@ When there are any problems in the dependency graph, it gives a compiler error.
 function foo(bar: number) {
   return bar + 1;
 }
-foo.inject = tokens('bar');
+foo.inject = ['bar'] as const;
 const baz /*: number*/ = injector.injectFunction(Foo);
 ```
 
@@ -468,7 +468,7 @@ const foo = injector.resolve('foo');
 function retrieveFoo(foo: number) {
   return foo;
 }
-retrieveFoo.inject = tokens('foo');
+retrieveFoo.inject = ['foo'] as const;
 const foo2 = injector.injectFunction(retrieveFoo);
 ```
 
@@ -491,7 +491,7 @@ const fooInjector = injector.provideFactory('foo', () => 42);
 function loggerFactory(target: Function | undefined) {
   return new Logger((target && target.name) || '');
 }
-loggerFactory.inject = tokens(TARGET_TOKEN);
+loggerFactory.inject = [TARGET_TOKEN] as const;
 const fooBarInjector = fooInjector.provideFactory('logger', loggerFactory, Scope.Transient);
 ```
 
@@ -519,15 +519,13 @@ The `Scope` enum indicates the scope of a provided injectable (class or factory)
 
 ### `tokens`
 
-The `tokens` function is a simple helper method that makes sure that an `inject` array is filled with a [tuple type filled with literal strings](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#rest-parameters-with-tuple-types).
+The `tokens` function is a simple helper method that makes sure that an `inject` array is filled with a [readonly tuple type filled with literal strings](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#rest-parameters-with-tuple-types). It is mostly there for backward compatibility reasons, since we can now use `as const`, but one might also simply prefer to use `tokens` instead.
 
 ```ts
 const inject = tokens('foo', 'bar');
 // Equivalent to:
-const inject: ['foo', 'bar'] = ['foo', 'bar'].
+const inject = ['foo', 'bar'] as const;
 ```
-
-_Note: hopefully [TypeScript will introduce explicit tuple syntax](https://github.com/Microsoft/TypeScript/issues/16656), so this helper method can be removed_
 
 ### `InjectableClass<TContext, R, Tokens extends InjectionToken<TContext>[]>`
 
@@ -575,7 +573,7 @@ class Boom {
 }
 class Prison {
   constructor(public readonly child: Boom) {}
-  public static inject = tokens('boom');
+  public static inject = ['boom'] as const;
 }
 try {
   rootInjector.provideClass('boom', Boom).injectClass(Prison);
