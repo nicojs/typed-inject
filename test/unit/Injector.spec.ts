@@ -12,7 +12,7 @@ import * as sinon from 'sinon';
 import { Disposable } from '../../src/api/Disposable';
 import { Task, tick } from '../helpers/Task';
 
-describe.only('InjectorImpl', () => {
+describe('InjectorImpl', () => {
   let rootInjector: Injector<{}>;
 
   beforeEach(() => {
