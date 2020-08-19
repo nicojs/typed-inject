@@ -22,7 +22,7 @@ _If you want to know more about how typed-inject works, please read [my blog art
 * [👶 Child injectors](#child-injectors)
 * [🎄 Decorate your dependencies](#decorate-your-dependencies)
 * [♻ Lifecycle control](#lifecycle-control)
-* [🚮 Disposing of provided stuff](#disposing-of-provided-stuff)
+* [🚮 Disposing provided stuff](#disposing-provided-stuff)
 * [✨ Magic tokens](#magic-tokens)
 * [😬 Error handling](#error-handling)
 * [📖 API reference](#api-reference)
@@ -364,7 +364,7 @@ Any instance created with `injectClass` or `injectFactory` will _not_ be dispose
 
 ## ✨ Magic tokens
 
-Any `Injector` instance can always inject the following tokens:
+Any `Injector` instance can always provide the following tokens:
 
 | Token name       | Token value   | Description                                                                                        |
 | ---------------- | ------------- | -------------------------------------------------------------------------------------------------- |
