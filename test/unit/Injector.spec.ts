@@ -481,6 +481,14 @@ describe('InjectorImpl', () => {
       expect(fooDisposeStub).called;
     });
 
+    it('should be removed from parent on disposal', async () => {
+      const root = createInjector();
+      const child = root.provideValue('a', 'a');
+      await child.dispose();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      expect((root as any).childInjectors.size).eq(0);
+    });
+
     it("should not dispose it's parent provider", async () => {
       // Arrange
       class Grandparent {
