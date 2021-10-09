@@ -124,7 +124,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     if (!this.isDisposed) {
       this.isDisposed = true; // be sure new disposables aren't added while we're disposing
       const promises = [];
-      for (const child of this.childInjectors.values()) {
+      for (const child of this.childInjectors) {
         promises.push(child.dispose());
       }
       await Promise.all(promises);
