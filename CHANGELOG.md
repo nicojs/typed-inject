@@ -1,3 +1,12 @@
+## [3.0.1](https://github.com/nicojs/typed-inject/compare/v3.0.0...v3.0.1) (2021-10-11)
+
+
+### Bug Fixes
+
+* **dispose:** Remove injector from parent on dispose ([#38](https://github.com/nicojs/typed-inject/issues/38)) ([2b17195](https://github.com/nicojs/typed-inject/commit/2b17195f1db1bfcbd2f4cf735d042ff25a53e810))
+
+
+
 # [3.0.0](https://github.com/nicojs/typed-inject/compare/v2.2.0...v3.0.0) (2020-08-12)
 
 
