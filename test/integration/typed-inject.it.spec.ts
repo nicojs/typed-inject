@@ -49,11 +49,9 @@ function parseExpectedError(line: string): string | undefined {
       return error;
     } else {
       expect.fail(`Unable to parse expectation: ${line}, use a JSON string or undefined`);
-      throw new Error();
     }
   } else {
     expect.fail(`Unable to parse expectation: ${line}, make sure file starts with '// error: "expected error"`);
-    throw new Error();
   }
 }
 
@@ -78,7 +76,6 @@ async function readFirstLine(fileName: string) {
   const line = file.split('\n').shift();
   if (!line) {
     expect.fail(`No content found in file: ${fileName}`);
-    throw new Error();
   } else {
     return line;
   }

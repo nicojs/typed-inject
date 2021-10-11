@@ -44,7 +44,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
       const args: any[] = this.resolveParametersToInject(Class, providedIn);
       return new Class(...(args as any));
     } catch (error) {
-      throw InjectionError.create(Class, error);
+      throw InjectionError.create(Class, error as Error);
     }
   }
 
@@ -54,7 +54,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
       const args: any[] = this.resolveParametersToInject(fn, providedIn);
       return fn(...(args as any));
     } catch (error) {
-      throw InjectionError.create(fn, error);
+      throw InjectionError.create(fn, error as Error);
     }
   }
 
@@ -138,10 +138,10 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
 }
 
 class RootInjector extends AbstractInjector<{}> {
-  public resolveInternal(token: never): never {
+  public override resolveInternal(token: never): never {
     throw new Error(`No provider found for "${token}"!.`);
   }
-  protected disposeInjectedValues() {
+  protected override disposeInjectedValues() {
     return Promise.resolve();
   }
 }
@@ -158,17 +158,17 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
 
   protected abstract result(target: Function | undefined): TProvided;
 
-  public async dispose() {
+  public override async dispose() {
     this.parent.removeChild(this as Injector<any>);
     await super.dispose();
   }
 
-  protected async disposeInjectedValues() {
+  protected override async disposeInjectedValues() {
     const promisesToAwait = [...this.disposables.values()].map((disposable) => disposable.dispose());
     await Promise.all(promisesToAwait);
   }
 
-  protected resolveInternal<SearchToken extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(
+  protected override resolveInternal<SearchToken extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(
     token: SearchToken,
     target: Function | undefined
   ): TChildContext<TParentContext, TProvided, CurrentToken>[SearchToken] {
@@ -181,7 +181,7 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
           this.addToCacheIfNeeded(value);
           return value as any;
         } catch (error) {
-          throw InjectionError.create(token, error);
+          throw InjectionError.create(token, error as Error);
         }
       }
     } else {
@@ -207,7 +207,7 @@ class ValueProvider<TParentContext, TProvided, ProvidedToken extends string> ext
   constructor(parent: AbstractInjector<TParentContext>, token: ProvidedToken, private readonly value: TProvided) {
     super(parent, token, Scope.Transient);
   }
-  protected result(): TProvided {
+  protected override result(): TProvided {
     return this.value;
   }
 }
@@ -225,7 +225,7 @@ class FactoryProvider<TParentContext, TProvided, ProvidedToken extends string, T
   ) {
     super(parent, token, scope);
   }
-  protected result(target: Function): TProvided {
+  protected override result(target: Function): TProvided {
     return this.registerProvidedValue(this.parent.injectFunction(this.injectable, target));
   }
 }
@@ -243,7 +243,7 @@ class ClassProvider<TParentContext, TProvided, ProvidedToken extends string, Tok
   ) {
     super(parent, token, scope);
   }
-  protected result(target: Function): TProvided {
+  protected override result(target: Function): TProvided {
     return this.registerProvidedValue(this.parent.injectClass(this.injectable, target));
   }
 }
