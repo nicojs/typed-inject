@@ -1,10 +1,7 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
-    'prettier'
-  ],
+  plugins: ['@typescript-eslint', 'prettier'],
   parserOptions: {
     tsconfigRootDir: __dirname,
     project: ['./tsconfig.lint.json'],
@@ -14,16 +11,25 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'prettier'
+    'prettier',
+  ],
+  overrides: [
+    {
+      files: ['test/**/*.ts'],
+      env: {
+        node: true,
+      },
+    },
   ],
   rules: {
-    "prettier/prettier": ["error"],
+    'prettier/prettier': ['error'],
     '@typescript-eslint/explicit-function-return-type': ['off'],
     '@typescript-eslint/no-explicit-any': ['off'],
     '@typescript-eslint/no-use-before-define': ['off'],
     '@typescript-eslint/restrict-template-expressions': ['off'],
     '@typescript-eslint/ban-types': [
-      'error', {
+      'error',
+      {
         extendDefaults: false,
         types: {
           String: {
@@ -56,10 +62,9 @@ module.exports = {
               'The `object` type is currently hard to use ([see this issue](https://github.com/microsoft/TypeScript/issues/21732)).',
               'Consider using `Record<string, unknown>` instead, as it allows you to more easily inspect and use the keys.',
             ].join('\n'),
-          }
-        }
-      }
-    ]
-
-  }
-}
+          },
+        },
+      },
+    ],
+  },
+};

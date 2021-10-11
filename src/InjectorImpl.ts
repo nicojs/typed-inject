@@ -36,7 +36,7 @@ const DEFAULT_SCOPE = Scope.Singleton;
 */
 
 abstract class AbstractInjector<TContext> implements Injector<TContext> {
-  private childInjectors: Injector<any>[] = [];
+  private childInjectors: Set<Injector<any>> = new Set();
 
   public injectClass<R, Tokens extends InjectionToken<TContext>[]>(Class: InjectableClass<TContext, R, Tokens>, providedIn?: Function): R {
     this.throwIfDisposed(Class);
@@ -78,7 +78,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
   public provideValue<Token extends string, R>(token: Token, value: R): AbstractInjector<TChildContext<TContext, R, Token>> {
     this.throwIfDisposed(token);
     const provider = new ValueProvider(this, token, value);
-    this.childInjectors.push(provider as Injector<any>);
+    this.childInjectors.add(provider as Injector<any>);
     return provider;
   }
 
@@ -89,7 +89,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
   ): AbstractInjector<TChildContext<TContext, R, Token>> {
     this.throwIfDisposed(token);
     const provider = new ClassProvider(this, token, scope, Class);
-    this.childInjectors.push(provider as Injector<any>);
+    this.childInjectors.add(provider as Injector<any>);
     return provider;
   }
   public provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
@@ -99,7 +99,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
   ): AbstractInjector<TChildContext<TContext, R, Token>> {
     this.throwIfDisposed(token);
     const provider = new FactoryProvider(this, token, scope, factory);
-    this.childInjectors.push(provider as Injector<any>);
+    this.childInjectors.add(provider as Injector<any>);
     return provider;
   }
 
@@ -114,13 +114,20 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     }
   }
 
+  public removeChild(child: Injector<any>): void {
+    this.childInjectors.delete(child);
+  }
+
   private isDisposed = false;
 
   public async dispose() {
     if (!this.isDisposed) {
       this.isDisposed = true; // be sure new disposables aren't added while we're disposing
-      await Promise.all(this.childInjectors.map((child) => child.dispose()));
-      while (this.childInjectors.pop()); // Don't keep the references, might cause a memory leak
+      const promises = [];
+      for (const child of this.childInjectors) {
+        promises.push(child.dispose());
+      }
+      await Promise.all(promises);
       await this.disposeInjectedValues();
     }
   }
@@ -150,6 +157,11 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
   }
 
   protected abstract result(target: Function | undefined): TProvided;
+
+  public async dispose() {
+    this.parent.removeChild(this as Injector<any>);
+    await super.dispose();
+  }
 
   protected async disposeInjectedValues() {
     const promisesToAwait = [...this.disposables.values()].map((disposable) => disposable.dispose());
