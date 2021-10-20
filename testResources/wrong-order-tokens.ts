@@ -6,4 +6,4 @@ class Foo {
   public static inject = tokens('baz', 'bar');
 }
 
-const foo: Foo = createInjector().provideValue('bar', 'bar').provideValue('baz', 42).injectClass(Foo);
+createInjector().provideValue('bar', 'bar').provideValue('baz', 42).injectClass(Foo).then((foo: Foo) => {});

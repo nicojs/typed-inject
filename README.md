@@ -1,10 +1,45 @@
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fnicojs%2Ftyped-inject%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/nicojs/typed-inject/master)
-[![Build Status](https://travis-ci.org/nicojs/typed-inject.svg?branch=master)](https://travis-ci.org/nicojs/typed-inject)
-[![NPM](https://img.shields.io/npm/dm/typed-inject.svg)](https://www.npmjs.com/package/typed-inject)
-[![Node version](https://img.shields.io/node/v/typed-inject.svg)](https://img.shields.io/node/v/stryker-utils.svg)
-[![Gitter](https://badges.gitter.im/stryker-mutator/stryker.svg)](https://gitter.im/stryker-mutator/stryker?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+# This is a small fork from [typed-inject](https://github.com/nicojs/typed-inject) by _Nico Jansen_ ([@\_nicojs](https://twitter.com/_nicojs))
 
-# Typed Inject
+## Added features
+
+Resolving is now async so
+  * you can provide async factories (returning promises)
+  * you can provide async classes with new method `provideAsyncClass(...)`
+
+And should keep the -- *magical* -- strong type checking :)
+
+### Use case (front-end lazyload)
+
+```TypeScript
+const injector2 = createInjector()
+  .provideLazyClass('logger-a', async () => {
+    const { default: LoggerA } = await import('./services/LoggerA');
+    return LoggerA;
+  })
+  .provideLazyClass(
+    'logger-b', async () => {
+      const { default: LoggerB } = await import('./services/LoggerB');
+      return LoggerB;
+  })
+  // MyServiceA depends on 'logger-a'
+  .provideLazyClass('myServiceA', async () => {
+    const { default: MyServiceA } = await import('./services/MyServiceA');
+    return MyServiceA;
+  })
+  // MyServiceB depends on 'logger-b'
+  .provideLazyClass('myServiceB', async () => {
+    const { default: MyServiceB } = await import('./services/MyServiceB');
+    return MyServiceB;
+  });
+
+// doing this will only lazy load files for LoggerA and MyServiceA.
+// Unused async service classes are never downloaded on client
+const myServiceA = await container.resolve('service-a')
+myServiceA.sayHello(); // imagine MyServiceA just has this sayHello() method logging something via its 'logger-a' dependency.
+```
+____
+
+# Inherited doc (updated) Typed Inject
 
 > Typesafe dependency injection for TypeScript
 
@@ -35,13 +70,13 @@ _If you want to know more about how typed-inject works, please read [my blog art
 Install typed-inject locally within your project folder, like so:
 
 ```shell
-npm i typed-inject
+npm i [TO BE DEFINED]
 ```
 
 Or with yarn:
 
 ```shell
-yarn add typed-inject
+yarn add [TO BE DEFINED]
 ```
 
 _Note: this package uses advanced TypeScript features. Only TS 3.0 and above is supported!_
@@ -57,7 +92,7 @@ _Note: projects must enable [`--strictFunctionTypes`](https://www.typescriptlang
 An example:
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 
 interface Logger {
   info(message: string): void;
@@ -81,8 +116,10 @@ class MyService {
 
 const appInjector = createInjector().provideValue('logger', logger).provideClass('httpClient', HttpClient);
 
-const myService = appInjector.injectClass(MyService);
-// Dependencies for MyService validated and injected
+appInjector.injectClass(MyService).then(myService => {
+  // Dependencies for MyService validated and injected
+  //...
+});
 ```
 
 In this example:
@@ -95,7 +132,7 @@ Dependencies are resolved using the static `inject` property in their classes. T
 Expect compiler errors when you mess up the order of tokens or forget it completely.
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 
 // Same logger as before
 
@@ -112,7 +149,9 @@ class MyService {
 
 const appInjector = createInjector().provideValue('logger', logger).provideClass('httpClient', HttpClient);
 
-const myService = appInjector.injectClass(MyService);
+appInjector.injectClass(MyService).then(myService => {
+  // ...
+});
 ```
 
 The error messages are a bit cryptic at times, but it sure is better than running into them at runtime.
@@ -154,7 +193,7 @@ The `Injector` interface is responsible for injecting classes or functions. You 
 To do anything useful with your injector, you'll need to create child injectors. This what you do with the `provideXXX` methods.
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 function barFactory(foo: number) {
   return foo + 1;
 }
@@ -177,7 +216,7 @@ function run(baz: Baz) {
   // baz is created!
 }
 run.inject = ['baz'] as const;
-childInjector.injectFunction(run);
+await childInjector.injectFunction(run);
 ```
 
 In the example above, a child injector is created. It can provide values for the tokens `'foo'`, `'bar'` and `'baz'`. You can create as many child injectors as you want.
@@ -191,7 +230,7 @@ Injectors keep track of their child injectors and values they've injected. This 
 A common use case for dependency injection is the [decorator design pattern](https://en.wikipedia.org/wiki/Decorator_pattern). It is used to dynamically add functionality to existing dependencies. Typed inject supports decoration of existing dependencies using its `provideFactory` and `provideClass` methods.
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 
 class Foo {
   public bar() {
@@ -211,12 +250,12 @@ function fooDecorator(foo: Foo) {
 fooDecorator.inject = ['foo'] as const;
 
 const fooProvider = createInjector().provideClass('foo', Foo).provideFactory('foo', fooDecorator);
-const foo = fooProvider.resolve('foo');
-
-foo.bar();
-// => "before call"
-// => "bar!"
-// => "after call"
+fooProvider.resolve('foo').then(foo => {
+  foo.bar();
+  // => "before call"
+  // => "bar!"
+  // => "after call"
+});
 ```
 
 In this example above the `Foo` class is decorated by the `fooDecorator`.
@@ -240,9 +279,10 @@ class Foo {
 }
 
 const fooProvider = injector.provideFactory('log', loggerFactory, Scope.Transient).provideClass('foo', Foo, Scope.Singleton);
-const foo = fooProvider.resolve('foo');
-const fooCopy = fooProvider.resolve('foo');
-const log = fooProvider.resolve('log');
+// assuming we're in an async context
+const foo = await fooProvider.resolve('foo');
+const fooCopy = await fooProvider.resolve('foo');
+const log = await fooProvider.resolve('log');
 console.log(foo === fooCopy); // => true
 console.log(log === foo.log); // => false
 ```
@@ -266,7 +306,7 @@ As `typed-inject` is responsible for creating (providing) your dependencies, it 
 Any `Injector` has a `dispose` method. Calling it will call `dispose` on any instance that was ever provided from it, as well as any child injectors that were created from it.
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 
 class Foo {
   constructor() {
@@ -278,9 +318,9 @@ class Foo {
 }
 const rootInjector = createInjector();
 const fooProvider = rootInjector.provideClass('foo', Foo);
-fooProvider.resolve('foo'); // => "Foo created"
+await fooProvider.resolve('foo'); // => "Foo created"
 await rootInjector.dispose(); // => "Foo disposed"
-fooProvider.resolve('foo'); // Error: Injector already disposed
+await fooProvider.resolve('foo'); // Error: Injector already disposed
 ```
 
 _Note: Always dispose from the top down! In this example, the `rootInjector` is disposed, which in turn disposes everything that was ever provided from one if it's child injectors._
@@ -300,7 +340,7 @@ You are responsible for the correct handling of the async behavior of the `dispo
 This means you should either `await` the result or attach `then`/`catch` handlers.
 
 ```ts
-import { createInjector, Disposable } from 'typed-inject';
+import { createInjector, Disposable } from 'typed-inject-async';
 class Foo implements Disposable {
   dispose(): Promise<void> {
     return Promise.resolve();
@@ -309,7 +349,7 @@ class Foo implements Disposable {
 const rootInjector = createInjector();
 const fooProvider = rootInjector
   .provideClass('foo', Foo);
-const foo = fooProvider.resolve('foo');
+const foo = await fooProvider.resolve('foo');
 async function disposeFoo() {
   await fooProvider.dispose();
 }
@@ -321,20 +361,20 @@ disposeFoo()
 Using `dispose` on the rootInjector will automatically dispose it's child injectors as well:
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 class Foo {}
 class Bar {}
 const rootInjector = createInjector();
 const fooProvider = rootInjector.provideClass('foo', Foo);
 const barProvider = fooProvider.provideClass('bar', Bar);
 await rootInjector.dispose(); // => fooProvider is also disposed!
-fooProvider.resolve('foo'); // => Error: Injector already disposed
+await fooProvider.resolve('foo'); // => Error: Injector already disposed
 ```
 
 Disposing of provided values is done in order of child first. So they are disposed in the opposite order of respective `providedXXX` calls (like a stack):
 
 ```ts
-import { createInjector } from 'typed-inject';
+import { createInjector } from 'typed-inject-async';
 
 class Foo {
   dispose() {
@@ -351,7 +391,7 @@ class Baz {
   constructor(public foo: Foo, public bar: Bar) {}
 }
 const rootInjector = createInjector();
-rootInjector
+await rootInjector
   .provideClass('foo', Foo)
   .provideClass('bar', Bar)
   .injectClass(Baz);
@@ -383,7 +423,7 @@ class Foo {
   static inject = [INJECTOR_TOKEN, TARGET_TOKEN] as const;
 }
 
-const foo = createInjector().inject(Foo);
+const foo = await createInjector().inject(Foo);
 ```
 
 <a name="error-handling"></a>
@@ -408,7 +448,7 @@ class Parent {
   constructor(public readonly child: Child) {}
   public static inject = ['child'] as const;
 }
-createInjector()
+await createInjector()
   .provideClass('grandChild', GrandChild)
   .provideClass('child', Child)
   .injectClass(Parent);
@@ -418,9 +458,9 @@ createInjector()
 When you handle the error, you will be able to capture the original `cause`.
 
 ```ts
-import { InjectionError } from 'typed-inject';
+import { InjectionError } from 'typed-inject-async';
 try {
-  createInjector()
+  await createInjector()
     .provideClass('grandChild', GrandChild)
     .provideClass('child', Child)
     .injectClass(Parent);
@@ -447,11 +487,11 @@ The `Injector<TContext>` is the core interface of typed-inject. It provides the 
 
 The `TContext` generic argument is a [lookup type](https://blog.mariusschulz.com/2017/01/06/typescript-2-1-keyof-and-lookup-types). The keys in this type are the tokens that can be injected, the values are the exact types of those tokens. For example, if `TContext extends { foo: string, bar: number }`, you can let a token `'foo'` be injected of type `string`, and a token `'bar'` of type `number`.
 
-Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#-magic-tokens)). Import it with `import { rootInjector } from 'typed-inject'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#-creating-child-injectors) for more information.
+Typed inject comes with only one implementation. The `rootInjector`. It implements `Injector<{}>` interface, meaning that it does not provide any tokens (except for [magic tokens](#-magic-tokens)). Import it with `import { rootInjector } from 'typed-inject-async'`. From the `rootInjector`, you can create child injectors. See [creating child injectors](#-creating-child-injectors) for more information.
 
-#### `injector.injectClass(injectable: InjectableClass)`
+#### `async injector.injectClass(injectable: InjectableClass)`
 
-This method creates a new instance of class `injectable` and returns it.
+This method creates a new instance of class `injectable` and returns it as a promise.
 When there are any problems in the dependency graph, it gives a compiler error.
 
 ```ts
@@ -459,12 +499,12 @@ class Foo {
   constructor(bar: number) {}
   static inject = ['bar'] as const;
 }
-const foo /*: Foo*/ = injector.injectClass(Foo);
+const foo /*: Foo*/ = await injector.injectClass(Foo);
 ```
 
-#### `injector.injectFunction(fn: InjectableFunction)`
+#### `await injector.injectFunction(fn: InjectableFunction)`
 
-This methods injects the function with requested tokens and returns the return value of the function.
+This methods injects the function with requested tokens and returns the return value of the function as a promise.
 When there are any problems in the dependency graph, it gives a compiler error.
 
 ```ts
@@ -472,21 +512,21 @@ function foo(bar: number) {
   return bar + 1;
 }
 foo.inject = ['bar'] as const;
-const baz /*: number*/ = injector.injectFunction(Foo);
+const baz /*: number*/ = await injector.injectFunction(Foo);
 ```
 
-#### `injector.resolve(token: Token): CorrespondingType<TContext, Token>`
+#### `async injector.resolve(token: Token): Promise<CorrespondingType<TContext, Token>>`
 
-The `resolve` method lets you resolve tokens by hand.
+The `resolve` method lets you resolve tokens (as a promise) by hand.
 
 ```ts
-const foo = injector.resolve('foo');
+const foo = await injector.resolve('foo');
 // Equivalent to:
 function retrieveFoo(foo: number) {
   return foo;
 }
 retrieveFoo.inject = ['foo'] as const;
-const foo2 = injector.injectFunction(retrieveFoo);
+const foo2 = await injector.injectFunction(retrieveFoo);
 ```
 
 #### `injector.provideValue(token: Token, value: R): Injector<ChildContext<TContext, Token, R>>`
@@ -512,11 +552,30 @@ loggerFactory.inject = [TARGET_TOKEN] as const;
 const fooBarInjector = fooInjector.provideFactory('logger', loggerFactory, Scope.Transient);
 ```
 
-#### `injector.provideFactory(token: Token, Class: InjectableClass<TContext>, scope = Scope.Singleton): Injector<ChildContext<TContext, Token, R>>`
+#### `injector.provideClass(token: Token, Class: InjectableClass<TContext>, scope = Scope.Singleton): Injector<ChildContext<TContext, Token, R>>`
 
 Create a child injector that can provide a value using instances of `Class` for token `'token'`. The new child injector can resolve all tokens the parent injector can, as well as the new `'token'`.
 
 Scope is also supported here, for more info, see `provideFactory`.
+
+#### `injector.provideAsyncClass(token: Token, loader: InjectableAsyncClass<TContext>, scope = Scope.Singleton): Injector<ChildContext<TContext, Token, R>>`
+
+Create a child injector that can provide a value using an async `loader` (returning a `Class`) for token `'token'`. The new child injector can resolve all tokens the parent injector can, as well as the new `'token'`.
+
+Scope is also supported here, for more info, see `provideFactory`.
+
+**async laoder example:**
+
+```TypeScript
+// consider having MyClass defined in './services/MyClass.ts'
+const myClassLoader = async () => {
+  const { default: MyClass } = await import('./services/MyClass');
+  return MyClass;
+}
+
+injector.provideFactory('myClass', myClassLoader);
+const myClass = await injector.resolve('myClass');
+```
 
 #### `injector.dispose(): Promise<void>`
 
@@ -596,7 +655,7 @@ class Prison {
   public static inject = ['boom'] as const;
 }
 try {
-  rootInjector.provideClass('boom', Boom).injectClass(Prison);
+  await rootInjector.provideClass('boom', Boom).injectClass(Prison);
 } catch (error) {
   if (error instanceof InjectionError) {
     error.path[0] === Prison;

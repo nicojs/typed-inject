@@ -1,8 +1,9 @@
-// error: "Type '[\"not-exists\"]' is not assignable to type 'readonly InjectionToken<{}>[]"
+// error: "Type 'string[]' is not assignable to type 'readonly InjectionToken<TChildContext<{}, number, \"bar\">>[]'"
 
-import { createInjector, tokens } from '../src/index';
+import { createInjector } from '../src/index';
 
-function foo(bar: string) {}
-foo.inject = tokens('not-exists');
-
-createInjector().injectFunction(foo);
+class Foo {
+  constructor(bar: number) {}
+  public static inject = ['bar'];
+}
+createInjector().provideValue('bar', 42).injectClass(Foo).then((foo: Foo) => {});

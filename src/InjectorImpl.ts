@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Scope } from './api/Scope';
 import { InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken';
-import { InjectableClass, InjectableFunction, Injectable } from './api/Injectable';
+import { InjectableClass, InjectableAsyncClass, InjectableFunction, Injectable } from './api/Injectable';
 import { Injector } from './api/Injector';
 import { InjectionError, InjectorDisposedError } from './errors';
 import { Disposable } from './api/Disposable';
@@ -38,21 +38,41 @@ const DEFAULT_SCOPE = Scope.Singleton;
 abstract class AbstractInjector<TContext> implements Injector<TContext> {
   private childInjectors: Set<Injector<any>> = new Set();
 
-  public injectClass<R, Tokens extends InjectionToken<TContext>[]>(Class: InjectableClass<TContext, R, Tokens>, providedIn?: Function): R {
+  public async injectClass<R, Tokens extends InjectionToken<TContext>[]>(
+    Class: InjectableClass<TContext, R, Tokens>,
+    providedIn?: Function
+  ): Promise<R> {
     this.throwIfDisposed(Class);
     try {
-      const args: any[] = this.resolveParametersToInject(Class, providedIn);
+      const args: any[] = await this.resolveParametersToInject(Class, providedIn);
       return new Class(...(args as any));
     } catch (error) {
       throw InjectionError.create(Class, error as Error);
     }
   }
 
-  public injectFunction<R, Tokens extends InjectionToken<TContext>[]>(fn: InjectableFunction<TContext, R, Tokens>, providedIn?: Function): R {
+  public async injectAsyncClass<R, Tokens extends InjectionToken<TContext>[]>(
+    loader: InjectableAsyncClass<TContext, R, Tokens>,
+    providedIn?: Function
+  ): Promise<R> {
+    this.throwIfDisposed(loader);
+    try {
+      const Class = await loader();
+      const args: any[] = await this.resolveParametersToInject(Class, providedIn);
+      return new Class(...(args as any));
+    } catch (error) {
+      throw InjectionError.create(loader, error as Error);
+    }
+  }
+
+  public async injectFunction<R, Tokens extends InjectionToken<TContext>[]>(
+    fn: InjectableFunction<TContext, R, Tokens>,
+    providedIn?: Function
+  ): Promise<R> {
     this.throwIfDisposed(fn);
     try {
-      const args: any[] = this.resolveParametersToInject(fn, providedIn);
-      return fn(...(args as any));
+      const args: any[] = await this.resolveParametersToInject(fn, providedIn);
+      return await fn(...(args as any));
     } catch (error) {
       throw InjectionError.create(fn, error as Error);
     }
@@ -61,18 +81,20 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
   private resolveParametersToInject<Tokens extends InjectionToken<TContext>[]>(
     injectable: Injectable<TContext, any, Tokens>,
     target?: Function
-  ): any[] {
+  ): Promise<any[]> {
     const tokens: InjectionToken<TContext>[] = (injectable as any).inject || [];
-    return tokens.map((key) => {
-      switch (key) {
-        case TARGET_TOKEN:
-          return target as any;
-        case INJECTOR_TOKEN:
-          return this as any;
-        default:
-          return this.resolveInternal(key, injectable);
-      }
-    });
+    return Promise.all(
+      tokens.map(async (key) => {
+        switch (key) {
+          case TARGET_TOKEN:
+            return target as any;
+          case INJECTOR_TOKEN:
+            return this as any;
+          default:
+            return await this.resolveInternal(key, injectable);
+        }
+      })
+    );
   }
 
   public provideValue<Token extends string, R>(token: Token, value: R): AbstractInjector<TChildContext<TContext, R, Token>> {
@@ -92,6 +114,18 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     this.childInjectors.add(provider as Injector<any>);
     return provider;
   }
+
+  public provideAsyncClass<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
+    token: Token,
+    laoder: InjectableAsyncClass<TContext, R, Tokens>,
+    scope = DEFAULT_SCOPE
+  ): AbstractInjector<TChildContext<TContext, R, Token>> {
+    this.throwIfDisposed(token);
+    const provider = new AsyncClassProvider(this, token, scope, laoder);
+    this.childInjectors.add(provider as Injector<any>);
+    return provider;
+  }
+
   public provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
     token: Token,
     factory: InjectableFunction<TContext, R, Tokens>,
@@ -103,9 +137,9 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     return provider;
   }
 
-  public resolve<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token] {
+  public async resolve<Token extends keyof TContext>(token: Token, target?: Function): Promise<TContext[Token]> {
     this.throwIfDisposed(token);
-    return this.resolveInternal(token, target);
+    return await this.resolveInternal(token, target);
   }
 
   protected throwIfDisposed(injectableOrToken: InjectionTarget) {
@@ -134,7 +168,7 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
 
   protected abstract disposeInjectedValues(): Promise<void>;
 
-  protected abstract resolveInternal<Token extends keyof TContext>(token: Token, target?: Function): TContext[Token];
+  protected abstract resolveInternal<Token extends keyof TContext>(token: Token, target?: Function): PromiseLike<TContext[Token]>;
 }
 
 class RootInjector extends AbstractInjector<{}> {
@@ -156,7 +190,7 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
     super();
   }
 
-  protected abstract result(target: Function | undefined): TProvided;
+  protected abstract result(target: Function | undefined): TProvided | PromiseLike<TProvided>;
 
   public override async dispose() {
     this.parent.removeChild(this as Injector<any>);
@@ -168,16 +202,16 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
     await Promise.all(promisesToAwait);
   }
 
-  protected override resolveInternal<SearchToken extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(
+  protected override async resolveInternal<SearchToken extends keyof TChildContext<TParentContext, TProvided, CurrentToken>>(
     token: SearchToken,
     target: Function | undefined
-  ): TChildContext<TParentContext, TProvided, CurrentToken>[SearchToken] {
+  ): Promise<TChildContext<TParentContext, TProvided, CurrentToken>[SearchToken]> {
     if (token === this.token) {
       if (this.cached) {
         return this.cached.value;
       } else {
         try {
-          const value = this.result(target);
+          const value = await this.result(target);
           this.addToCacheIfNeeded(value);
           return value as any;
         } catch (error) {
@@ -185,7 +219,7 @@ abstract class ChildInjector<TParentContext, TProvided, CurrentToken extends str
         }
       }
     } else {
-      return this.parent.resolve(token as any, target) as any;
+      return (await this.parent.resolve(token as any, target)) as any;
     }
   }
 
@@ -225,8 +259,8 @@ class FactoryProvider<TParentContext, TProvided, ProvidedToken extends string, T
   ) {
     super(parent, token, scope);
   }
-  protected override result(target: Function): TProvided {
-    return this.registerProvidedValue(this.parent.injectFunction(this.injectable, target));
+  protected override async result(target: Function): Promise<TProvided> {
+    return this.registerProvidedValue(await this.parent.injectFunction(this.injectable, target));
   }
 }
 
@@ -243,11 +277,32 @@ class ClassProvider<TParentContext, TProvided, ProvidedToken extends string, Tok
   ) {
     super(parent, token, scope);
   }
-  protected override result(target: Function): TProvided {
-    return this.registerProvidedValue(this.parent.injectClass(this.injectable, target));
+  protected override async result(target: Function): Promise<TProvided> {
+    return this.registerProvidedValue(await this.parent.injectClass(this.injectable, target));
+  }
+}
+
+class AsyncClassProvider<
+  TParentContext,
+  TProvided,
+  ProvidedToken extends string,
+  Tokens extends InjectionToken<TParentContext>[]
+> extends ChildInjector<TParentContext, TProvided, ProvidedToken> {
+  constructor(
+    parent: AbstractInjector<TParentContext>,
+    token: ProvidedToken,
+    scope: Scope,
+    private readonly injectable: InjectableAsyncClass<TParentContext, TProvided, Tokens>
+  ) {
+    super(parent, token, scope);
+  }
+  protected override async result(target: Function): Promise<TProvided> {
+    return this.registerProvidedValue(await this.parent.injectAsyncClass(this.injectable, target));
   }
 }
 
 export function createInjector(): Injector<{}> {
+  /* eslint-disable */
+  /* @ts-ignore */
   return new RootInjector();
 }

@@ -22,7 +22,7 @@ function stringFactory() {
 async function main() {
   for (let i = 0; i < 200; i++) {
     const fooInjector = rootInjector.provideFactory('foo', stringFactory);
-    const foo = fooInjector.resolve('foo');
+    const foo = await fooInjector.resolve('foo');
     if (i % 10 === 0) {
       console.log(
         `\tIteration ${i}, foo used ${Math.floor((foo.length * i) / ONE_MB)} MB. (heap total: ${Math.floor(

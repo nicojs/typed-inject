@@ -17,4 +17,4 @@ class Foo {
 
 const fooInjector = createInjector().provideValue('qux', true).provideClass('baz', Baz).provideFactory('bar', bar);
 
-const foo: Foo = fooInjector.injectClass(Foo);
+fooInjector.injectClass(Foo).then((foo: Foo) => foo.bar.baz);

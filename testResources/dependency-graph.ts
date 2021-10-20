@@ -1,7 +1,5 @@
 // error: false
-import { createInjector, tokens } from '../src/index';
-
-const rootInjector = createInjector();
+import { createInjector } from '../src/index';
 
 class Baz {
   public baz = 'baz';
@@ -10,13 +8,13 @@ class Baz {
 function bar(baz: Baz) {
   return { baz };
 }
-bar.inject = tokens('baz');
+bar.inject = ['baz'] as const;
 
 class Foo {
   constructor(public bar: { baz: Baz }, public baz: Baz, public qux: boolean) {}
-  public static inject = tokens('bar', 'baz', 'qux');
+  public static inject = ['bar', 'baz', 'qux'] as const;
 }
 
-const fooInjector = rootInjector.provideValue('qux', true).provideClass('baz', Baz).provideFactory('bar', bar);
+const fooInjector = createInjector().provideValue('qux', true).provideClass('baz', Baz).provideFactory('bar', bar);
 
-const foo: Foo = fooInjector.injectClass(Foo);
+fooInjector.injectClass(Foo).then((foo: Foo) => foo.bar.baz);

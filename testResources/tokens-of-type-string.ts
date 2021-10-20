@@ -6,4 +6,4 @@ class Foo {
   constructor(bar: number) {}
   public static inject = ['bar'];
 }
-const foo: Foo = createInjector().provideValue('bar', 42).injectClass(Foo);
+createInjector().provideValue('bar', 42).injectClass(Foo).then((foo: Foo) => {});

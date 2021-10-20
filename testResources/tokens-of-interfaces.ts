@@ -24,4 +24,4 @@ class Baz {
 }
 
 const fooInjector = rootInjector.provideClass('foo', Bar);
-const baz: Baz = fooInjector.injectClass(Baz);
+fooInjector.injectClass(Baz).then((baz: Baz) => baz.callFoo());

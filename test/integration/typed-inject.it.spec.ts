@@ -3,7 +3,7 @@ import path = require('path');
 import ts = require('typescript');
 import { expect } from 'chai';
 
-describe('typed-inject', () => {
+describe('typed-inject-async', () => {
   fs.readdirSync(testResource()).forEach((tsFile) => {
     it(path.basename(tsFile), async () => {
       const fileName = testResource(tsFile);

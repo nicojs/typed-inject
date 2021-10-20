@@ -1,7 +1,7 @@
 {
-  "name": "typed-inject",
-  "version": "3.0.1",
-  "description": "Type safe dependency injection framework for TypeScript",
+  "name": "typed-inject-async",
+  "version": "1.0.0",
+  "description": "Type safe dependency injection framework for TypeScript built over \"typed-inject\"",
   "main": "dist/src/index.js",
   "scripts": {
     "all": "npm run clean && npm run lint && npm run build && npm run test && npm run stryker",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nicojs/typed-inject.git"
+    "url": "git+https://github.com/EuronewsSDD/typed-inject-async.git"
   },
   "engines": {
     "node": ">=10"
@@ -33,22 +33,27 @@
     "IoC",
     "di",
     "inject",
-    "type-safe"
+    "type-safe",
+    "async"
   ],
   "publishConfig": {
     "access": "public"
   },
   "author": "Nico Jansen <jansennico@gmail.com>",
+  "contributors": [
+    "Paul Sénon <paul.senon@gmail.com>"
+  ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/nicojs/typed-inject/issues"
+    "url": "https://github.com/EuronewsSDD/typed-inject/issues"
   },
-  "homepage": "https://github.com/nicojs/typed-inject/#readme",
+  "homepage": "https://github.com/EuronewsSDD/typed-inject/#readme",
   "devDependencies": {
     "@stryker-mutator/core": "^5.4.1",
     "@stryker-mutator/mocha-runner": "^5.4.1",
     "@stryker-mutator/typescript-checker": "^5.4.1",
     "@types/chai": "^4.2.22",
+    "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.3",
     "@types/sinon": "^10.0.4",
@@ -56,6 +61,7 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
     "conventional-changelog-cli": "^2.1.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",

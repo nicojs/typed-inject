@@ -26,6 +26,7 @@ function describeInjectAction(target: InjectionTarget) {
 
 function name(target: InjectionTarget) {
   if (typeof target === 'function') {
+    // todo add support for AyncClassLoader
     if (target.toString().startsWith('class')) {
       return `[class ${target.name || '<anonymous>'}]`;
     } else {
