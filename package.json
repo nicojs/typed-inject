@@ -1,6 +1,6 @@
 {
-  "name": "typed-inject-async",
-  "version": "1.0.0",
+  "name": "@euronews/typed-inject-async",
+  "version": "3.0.1",
   "description": "Type safe dependency injection framework for TypeScript built over \"typed-inject\"",
   "main": "dist/src/index.js",
   "scripts": {
@@ -14,7 +14,7 @@
     "stryker": "stryker run",
     "preversion": "npm run all",
     "version": "npm run generate-changelog",
-    "postversion": "npm publish && git push && git push --tags",
+    "postversion": "npm publish --access public && git push && git push --tags",
     "generate-changelog": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "release:patch": "npm version patch -m \"chore(release): %s\"",
     "release:minor": "npm version minor -m \"chore(release): %s\"",
