@@ -67,8 +67,8 @@ function readFile(fileName: string): Promise<string> {
   });
 }
 
-function testResource(relativePath?: string) {
-  return path.resolve(__dirname, '..', '..', '..', 'testResources', relativePath || '.');
+function testResource(relativePath = '.') {
+  return path.resolve(__dirname, '..', '..', '..', 'testResources', relativePath);
 }
 
 async function readFirstLine(fileName: string) {
