@@ -231,7 +231,8 @@ You can determine the lifecycle of dependencies with the third `Scope` parameter
 function loggerFactory(target: Function | null) {
   return getLogger((target && target.name) || 'UNKNOWN');
 }
-loggerFactory.inject('target');
+loggerFactory.inject = ['target'] as const;
+
 class Foo {
   constructor(public log: Logger) {
     log.info('Foo created');
