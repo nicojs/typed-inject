@@ -483,8 +483,9 @@ This method injects the function with requested tokens from the injector, invoke
 It is a shortcut for calling the provided function with the values from the injector.
 
 ```ts
-const args: any[] = this.resolveParametersToInject(fn, providedIn);
-return fn(...(args as any));
+const logger = appInjector.resolve('logger');
+const httpClient = appInjector.resolve('httpClient');
+const request = doRequest(httpClient, logger);
 ```
 
 When there are any problems in the dependency graph, it gives a compiler error.
