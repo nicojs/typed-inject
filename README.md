@@ -457,8 +457,9 @@ This method creates a new instance of class `injectable` by populating its const
 Basically it is a shortcut for resolving values from the injector and creating a new instance with those values:
 
 ```ts
-const args: any[] = this.resolveParametersToInject(Class, providedIn);
-return new Class(...(args as any));
+const logger = appInjector.resolve('logger');
+const httpClient = appInjector.resolve('httpClient');
+const service = new MyService(httpClient, logger);
 ```
 
 It neither overwrites any dependencies in the dependency injection tree nor marks the class as injectable.
