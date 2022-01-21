@@ -462,8 +462,6 @@ const httpClient = appInjector.resolve('httpClient');
 const service = new MyService(httpClient, logger);
 ```
 
-It neither overwrites any dependencies in the dependency injection tree nor marks the class as injectable.
-
 Any instance created with `injectClass` will not be disposed when `dispose` is called. It is the caller's responsiblity to dispose it.
 
 When there are any problems in the dependency graph, it gives a compiler error.
