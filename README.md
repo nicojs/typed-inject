@@ -452,7 +452,18 @@ Typed inject comes with only one implementation. The `rootInjector`. It implemen
 
 #### `injector.injectClass(injectable: InjectableClass)`
 
-This method creates a new instance of class `injectable` and returns it.
+This method creates a new instance of class `injectable` by populating its constructor arguments from the injector and returns it.
+
+Basically it is a shortcut for resolving values from the injector and creating a new instance with those values:
+
+```ts
+const logger = appInjector.resolve('logger');
+const httpClient = appInjector.resolve('httpClient');
+const service = new MyService(httpClient, logger);
+```
+
+Any instance created with `injectClass` will not be disposed when `dispose` is called. It is the caller's responsiblity to dispose it.
+
 When there are any problems in the dependency graph, it gives a compiler error.
 
 ```ts
@@ -465,7 +476,16 @@ const foo /*: Foo*/ = injector.injectClass(Foo);
 
 #### `injector.injectFunction(fn: InjectableFunction)`
 
-This methods injects the function with requested tokens and returns the return value of the function.
+This method injects the function with requested tokens from the injector, invokes it and returns the result. 
+
+It is a shortcut for calling the provided function with the values from the injector.
+
+```ts
+const logger = appInjector.resolve('logger');
+const httpClient = appInjector.resolve('httpClient');
+const request = doRequest(httpClient, logger);
+```
+
 When there are any problems in the dependency graph, it gives a compiler error.
 
 ```ts
