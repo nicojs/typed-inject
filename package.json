@@ -28,7 +28,7 @@
     "url": "git+https://github.com/nicojs/typed-inject.git"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "keywords": [
     "typescript",
