@@ -149,7 +149,7 @@ Please read [my blog article on Medium](https://medium.com/@jansennico/advanced-
 
 ## 👶 Child injectors
 
-The `Injector` interface is responsible for injecting classes or functions. You start off with an empty injector after calling `createInjector`. It can't provide any dependencies directly (expect for [magic tokens](#-magic-tokens)).
+The `Injector` interface is responsible for injecting classes or functions. You start off with an empty injector after calling `createInjector`. It can't provide any dependencies directly (except for [magic tokens](#-magic-tokens)).
 
 To do anything useful with your injector, you'll need to create child injectors. This what you do with the `provideXXX` methods.
 
