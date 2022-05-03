@@ -1,5 +1,5 @@
 // error: "Property 'sayFoo' is missing in type 'Bar' but required in type 'FooLike'."
-import { createInjector } from '../src/index';
+import { createInjector } from '../src/index.js';
 
 const rootInjector = createInjector();
 

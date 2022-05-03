@@ -1,5 +1,5 @@
 // error: false
-import { createInjector, tokens } from '../src/index';
+import { createInjector, tokens } from '../src/index.js';
 
 const rootInjector = createInjector();
 

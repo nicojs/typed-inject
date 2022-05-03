@@ -1,4 +1,4 @@
-import { InjectionTarget } from './api/InjectionTarget';
+import type { InjectionTarget } from './api/InjectionTarget.js';
 
 /*
 

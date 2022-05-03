@@ -1,4 +1,6 @@
-import { createInjector } from '../../src';
+import process from 'process';
+import { fileURLToPath } from 'url';
+import { createInjector } from '../../src/index.js';
 
 /**
  * Memory leak worker.
@@ -8,7 +10,7 @@ import { createInjector } from '../../src';
 const rootInjector = createInjector();
 const ONE_KB = 1024;
 const ONE_MB = ONE_KB * ONE_KB;
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
     console.error(err);
     process.exitCode = 1;

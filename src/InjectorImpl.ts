@@ -2,15 +2,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Scope } from './api/Scope';
-import { InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken';
-import { InjectableClass, InjectableFunction, Injectable } from './api/Injectable';
-import { Injector } from './api/Injector';
-import { InjectionError, InjectorDisposedError } from './errors';
-import { Disposable } from './api/Disposable';
-import { isDisposable } from './utils';
-import { TChildContext } from './api/TChildContext';
-import { InjectionTarget } from './api/InjectionTarget';
+import { type InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken.js';
+import type { InjectableClass, InjectableFunction, Injectable } from './api/Injectable.js';
+import type { Injector } from './api/Injector.js';
+import type { Disposable } from './api/Disposable.js';
+import type { TChildContext } from './api/TChildContext.js';
+import type { InjectionTarget } from './api/InjectionTarget.js';
+import { Scope } from './api/Scope.js';
+import { InjectionError, InjectorDisposedError } from './errors.js';
+import { isDisposable } from './utils.js';
 
 const DEFAULT_SCOPE = Scope.Singleton;
 

@@ -1,5 +1,5 @@
-import { CorrespondingTypes } from './CorrespondingType';
-import { InjectionToken } from './InjectionToken';
+import { CorrespondingTypes } from './CorrespondingType.js';
+import { InjectionToken } from './InjectionToken.js';
 
 export type InjectableClass<TContext, R, Tokens extends readonly InjectionToken<TContext>[]> =
   | ClassWithInjections<TContext, R, Tokens>

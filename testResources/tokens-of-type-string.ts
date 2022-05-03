@@ -1,6 +1,6 @@
 // error: "Type 'string[]' is not assignable to type 'readonly InjectionToken<TChildContext<{}, number, \"bar\">>[]'"
 
-import { createInjector } from '../src/index';
+import { createInjector } from '../src/index.js';
 
 class Foo {
   constructor(bar: number) {}

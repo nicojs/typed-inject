@@ -2,9 +2,10 @@
   "compilerOptions": {
     "composite": true,
     "declarationMap": true,
-    "module": "commonjs",
+    "module": "ES2022",
     "target": "es2017",
     "noImplicitAny": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "rootDir": ".",
     "sourceMap": true,

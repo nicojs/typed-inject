@@ -1,5 +1,5 @@
-import { InjectionToken, InjectorToken, TargetToken } from './InjectionToken';
-import { Injector } from './Injector';
+import { InjectionToken, InjectorToken, TargetToken } from './InjectionToken.js';
+import { Injector } from './Injector.js';
 
 export type CorrespondingType<TContext, T extends InjectionToken<TContext>> = T extends InjectorToken
   ? Injector<TContext>
