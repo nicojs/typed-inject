@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { InjectorDisposedError, InjectionError } from '../../src';
+import { InjectorDisposedError, InjectionError } from '../../src/index.js';
 
 describe(InjectorDisposedError.name, () => {
   it('should be instanceof Error', () => {

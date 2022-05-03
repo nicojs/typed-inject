@@ -1,5 +1,5 @@
 // error: false
-import { createInjector } from '../src/index';
+import { createInjector } from '../src/index.js';
 
 class Baz {
   public baz = 'baz';

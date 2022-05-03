@@ -1,7 +1,8 @@
-import fs = require('fs');
-import path = require('path');
-import ts = require('typescript');
+import fs from 'fs';
+import path, { dirname } from 'path';
+import ts from 'typescript';
 import { expect } from 'chai';
+import { fileURLToPath } from 'url';
 
 describe('typed-inject', () => {
   fs.readdirSync(testResource()).forEach((tsFile) => {
@@ -68,7 +69,7 @@ function readFile(fileName: string): Promise<string> {
 }
 
 function testResource(relativePath = '.') {
-  return path.resolve(__dirname, '..', '..', '..', 'testResources', relativePath);
+  return path.resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'testResources', relativePath);
 }
 
 async function readFirstLine(fileName: string) {

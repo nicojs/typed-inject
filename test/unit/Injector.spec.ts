@@ -3,15 +3,16 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { expect } from 'chai';
-import { Injector } from '../../src/api/Injector';
-import { tokens } from '../../src/tokens';
-import { createInjector } from '../../src/InjectorImpl';
-import { TARGET_TOKEN, INJECTOR_TOKEN } from '../../src/api/InjectionToken';
-import { InjectionError, InjectorDisposedError } from '../../src/errors';
-import { Scope } from '../../src/api/Scope';
 import * as sinon from 'sinon';
-import { Disposable } from '../../src/api/Disposable';
-import { Task, tick } from '../helpers/Task';
+
+import { Injector } from '../../src/api/Injector.js';
+import { tokens } from '../../src/tokens.js';
+import { createInjector } from '../../src/InjectorImpl.js';
+import { TARGET_TOKEN, INJECTOR_TOKEN } from '../../src/api/InjectionToken.js';
+import { InjectionError, InjectorDisposedError } from '../../src/errors.js';
+import { Scope } from '../../src/api/Scope.js';
+import { Disposable } from '../../src/api/Disposable.js';
+import { Task, tick } from '../helpers/Task.js';
 
 describe('InjectorImpl', () => {
   let rootInjector: Injector<{}>;

@@ -1,5 +1,5 @@
 // error: "Property 'inject' is missing in type 'typeof Foo'"
-import { createInjector, Injector } from '../src/index';
+import { createInjector, Injector } from '../src/index.js';
 
 createInjector().injectClass(
   class Foo {

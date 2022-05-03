@@ -1,5 +1,5 @@
 // error: "Types of parameters 'bar' and 'args_0' are incompatible"
-import { createInjector, tokens } from '../src/index';
+import { createInjector, tokens } from '../src/index.js';
 
 class Foo {
   constructor(bar: string, baz: number) {}
