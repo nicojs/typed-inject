@@ -1,3 +1,21 @@
+# [4.0.0](https://github.com/nicojs/typed-inject/compare/v3.0.1...v4.0.0) (2023-05-05)
+
+
+### Features
+
+* **esm:** migrate to native esm ([#53](https://github.com/nicojs/typed-inject/issues/53)) ([b8efb26](https://github.com/nicojs/typed-inject/commit/b8efb26029bd5b683a5ac194ebfcbe8f0823db6b))
+* **Node version:** set minimal node version to v16 ([#62](https://github.com/nicojs/typed-inject/issues/62)) ([585c99e](https://github.com/nicojs/typed-inject/commit/585c99e106e58ceae11ed4ccd493a07fc26662e5))
+* **node:** drop support for node 10 and 12 ([#54](https://github.com/nicojs/typed-inject/issues/54)) ([c9f63bb](https://github.com/nicojs/typed-inject/commit/c9f63bb811783e343a8536c58e25d2f4f30dcb53))
+
+
+### BREAKING CHANGES
+
+* **Node version:** Node 14 is no longer officially supported (although it might still work).
+* **node:** Node v10 and v12 are no longer supported.
+* **esm:** typed-inject is now a pure ESM. Please [read this](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
+
+
+
 ## [3.0.1](https://github.com/nicojs/typed-inject/compare/v3.0.0...v3.0.1) (2021-10-11)
 
 
