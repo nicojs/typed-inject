@@ -186,9 +186,9 @@ Injectors keep track of their child injectors and values they've injected. This 
 
 <a name="decorate-your-dependencies"></a>
 
-## ® Class child injectors with internally registered tokens
+## ® Internally registered tokens
 
-You can register provided class tokens internally by using the `provideInjectableClass` method. To implement the “injectable” class, add a “static injectableAs” property with a string literal value. This way, it is possible to create a hierarchy of class dependencies without relying on arbitrarily specified tokens to inject dependencies, instead opting to consolidate said tokens within the classes themselves.
+You can register class tokens internally in the clases the need to be provided, and then provide such class by using the `provideInjectableClass` method. To implement the “injectable” class, add a “static injectableAs” property with a string literal value. This way, it is possible to create a hierarchy of class dependencies without relying on arbitrarily specified tokens to inject dependencies, instead opting to consolidate said tokens within the classes themselves.
 
 ```ts
 import { createInjector } from 'typed-inject';
