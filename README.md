@@ -186,6 +186,30 @@ Injectors keep track of their child injectors and values they've injected. This 
 
 <a name="decorate-your-dependencies"></a>
 
+## ® Class child injectors with internally registered tokens
+
+You can register provided class tokens internally by using the `provideInjectableClass` method. To implement the “injectable” class, add a “static injectableAs” property with a string literal value. This way, it is possible to create a hierarchy of class dependencies without relying on arbitrarily specified tokens to inject dependencies, instead opting to consolidate said tokens within the classes themselves.
+
+```ts
+import { createInjector } from 'typed-inject';
+
+class Foo {
+  static injectableAs = "FooToken" as const;
+}
+
+class Bar {
+  static injectableAs = "BarToken" as const;
+
+  static inject = [ Foo.injectableAs ] as const;
+
+  constructor(foo: Foo) {}
+}
+
+const injector = createInjector()
+  .provideInjectableClass(Foo)
+  .provideInjectableClass(Bar);
+```
+
 ## 🎄 Decorate your dependencies
 
 A common use case for dependency injection is the [decorator design pattern](https://en.wikipedia.org/wiki/Decorator_pattern). It is used to dynamically add functionality to existing dependencies. Typed inject supports decoration of existing dependencies using its `provideFactory` and `provideClass` methods.
