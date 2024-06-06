@@ -5,6 +5,14 @@ export type InjectableClass<TContext, R, Tokens extends readonly InjectionToken<
   | ClassWithInjections<TContext, R, Tokens>
   | ClassWithoutInjections<R>;
 
+export type InjectableClassWithToken<Token, TContext, R, Tokens extends readonly InjectionToken<TContext>[]> = InjectableClass<
+  TContext,
+  R,
+  Tokens
+> & {
+  readonly injectableAs: Token;
+};
+
 export interface ClassWithInjections<TContext, R, Tokens extends readonly InjectionToken<TContext>[]> {
   new (...args: CorrespondingTypes<TContext, Tokens>): R;
   readonly inject: Tokens;

@@ -105,6 +105,34 @@ describe('InjectorImpl', () => {
       expect(actualBaz.bar.foo.target).eq(Bar);
     });
 
+    it('should be able to provide a target into a class with auto token classes', () => {
+      // Arrange
+      class Foo {
+        constructor(public target: undefined | Function) {}
+        public static inject = tokens(TARGET_TOKEN);
+        public static injectableAs = 'Foo' as const;
+      }
+      class Bar {
+        constructor(public target: undefined | Function, public foo: Foo) {}
+        public static inject = tokens(TARGET_TOKEN, Foo.injectableAs);
+        public static injectableAs = 'Bar' as const;
+      }
+
+      class Baz {
+        constructor(public bar: Bar, public target: Function | undefined) {}
+        public static inject = tokens(Bar.injectableAs, TARGET_TOKEN);
+        public static injectableAs = 'Baz' as const;
+      }
+
+      // Act
+      const actualBaz = rootInjector.provideInjectableClass(Foo).provideInjectableClass(Bar).injectClass(Baz);
+
+      // Assert
+      expect(actualBaz.target).undefined;
+      expect(actualBaz.bar.target).eq(Baz);
+      expect(actualBaz.bar.foo.target).eq(Bar);
+    });
+
     it('should throw when no provider was found for a class', () => {
       class FooInjectable {
         constructor(public foo: string) {}
@@ -550,6 +578,53 @@ describe('InjectorImpl', () => {
         .provideValue('logger', expectedLogger)
         .provideClass('grandChild', GrandChild)
         .provideClass('child1', Child1)
+        .provideClass('child2', Child2)
+        .injectClass(Parent);
+
+      // Assert
+      expect(actual.child.bar).eq('foo');
+      expect(actual.child2.foo).eq('bar');
+      expect(actual.child.log).eq(expectedLogger);
+      expect(actual.child2.log).eq(expectedLogger);
+      expect(actual.child.grandchild.log).eq(expectedLogger);
+      expect(actual.child.grandchild.baz).eq('qux');
+      expect(actual.log).eq(expectedLogger);
+    });
+
+    it('should be able to inject a dependency tree with auto token classes', () => {
+      // Arrange
+      class Logger {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        public info(_msg: string) {}
+      }
+      class GrandChild {
+        public baz = 'qux';
+        constructor(public log: Logger) {}
+        public static inject = tokens('logger');
+        public static injectableAs = 'GrandChild' as const;
+      }
+      class Child1 {
+        public bar = 'foo';
+        constructor(public log: Logger, public grandchild: GrandChild) {}
+        public static inject = tokens('logger', GrandChild.injectableAs);
+        public static injectableAs = 'Child1' as const;
+      }
+      class Child2 {
+        public foo = 'bar';
+        constructor(public log: Logger) {}
+        public static inject = tokens('logger');
+      }
+      class Parent {
+        constructor(public readonly child: Child1, public readonly child2: Child2, public readonly log: Logger) {}
+        public static inject = tokens(Child1.injectableAs, 'child2', 'logger');
+      }
+      const expectedLogger = new Logger();
+
+      // Act
+      const actual = rootInjector
+        .provideValue('logger', expectedLogger)
+        .provideInjectableClass(GrandChild)
+        .provideInjectableClass(Child1)
         .provideClass('child2', Child2)
         .injectClass(Parent);
 
