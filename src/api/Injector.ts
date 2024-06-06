@@ -1,4 +1,4 @@
-import { InjectableClass, InjectableFunction } from './Injectable.js';
+import { InjectableClass, InjectableClassWithToken, InjectableFunction } from './Injectable.js';
 import { InjectionToken } from './InjectionToken.js';
 import { Scope } from './Scope.js';
 import { TChildContext } from './TChildContext.js';
@@ -11,6 +11,10 @@ export interface Injector<TContext = {}> {
   provideClass<Token extends string, R, Tokens extends readonly InjectionToken<TContext>[]>(
     token: Token,
     Class: InjectableClass<TContext, R, Tokens>,
+    scope?: Scope
+  ): Injector<TChildContext<TContext, R, Token>>;
+  provideInjectableClass<Token extends string, R, Tokens extends readonly InjectionToken<TContext>[]>(
+    Class: InjectableClassWithToken<Token, TContext, R, Tokens>,
     scope?: Scope
   ): Injector<TChildContext<TContext, R, Token>>;
   provideFactory<Token extends string, R, Tokens extends readonly InjectionToken<TContext>[]>(

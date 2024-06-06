@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { type InjectionToken, INJECTOR_TOKEN, TARGET_TOKEN } from './api/InjectionToken.js';
-import type { InjectableClass, InjectableFunction, Injectable } from './api/Injectable.js';
+import type { InjectableClass, InjectableFunction, Injectable, InjectableClassWithToken } from './api/Injectable.js';
 import type { Injector } from './api/Injector.js';
 import type { Disposable } from './api/Disposable.js';
 import type { TChildContext } from './api/TChildContext.js';
@@ -93,6 +93,14 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
     this.childInjectors.add(provider as Injector<any>);
     return provider;
   }
+
+  public provideInjectableClass<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
+    Class: InjectableClassWithToken<Token, TContext, R, Tokens>,
+    scope = DEFAULT_SCOPE
+  ): AbstractInjector<TChildContext<TContext, R, Token>> {
+    return this.provideClass(Class.injectableAs, Class, scope);
+  }
+
   public provideFactory<Token extends string, R, Tokens extends InjectionToken<TContext>[]>(
     token: Token,
     factory: InjectableFunction<TContext, R, Tokens>,
