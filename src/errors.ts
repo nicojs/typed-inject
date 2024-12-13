@@ -47,17 +47,17 @@ export class InjectorDisposedError extends TypedInjectError {
 export class InjectionError extends TypedInjectError {
   constructor(
     public readonly path: InjectionTarget[],
-    cause: unknown,
+    cause: Error,
   ) {
     super(
-      `Could not ${describeInjectAction(path[0])} ${path.map(name).join(' -> ')}.${cause instanceof Error ? ` Cause: ${cause.message}` : ''}`,
+      `Could not ${describeInjectAction(path[0])} ${path.map(name).join(' -> ')}. Cause: ${cause.message}`,
       { cause },
     );
   }
 
   static create(target: InjectionTarget, error: Error): InjectionError {
     if (error instanceof InjectionError) {
-      return new InjectionError([target, ...error.path], error.cause);
+      return new InjectionError([target, ...error.path], error.cause as Error);
     } else {
       return new InjectionError([target], error);
     }
