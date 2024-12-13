@@ -25,7 +25,7 @@ function findActualError(fileName: string) {
   program = ts.createProgram(
     [fileName],
     {
-      module: ts.ModuleKind.ES2015,
+      module: ts.ModuleKind.NodeNext,
       strict: true,
       target: ts.ScriptTarget.ESNext,
       types: ['node'],
