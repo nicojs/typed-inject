@@ -1,4 +1,4 @@
-// error: "Type 'string[]' is not assignable to type 'readonly InjectionToken<TChildContext<{}, number, \"bar\">>[]'"
+// error: "Type 'string[]' is not assignable to type 'readonly InjectionToken<{ bar: number; }>[]'"
 
 import { createInjector } from '../src/index.js';
 
