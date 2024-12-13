@@ -38,13 +38,20 @@ function name(target: InjectionTarget) {
 
 export class InjectorDisposedError extends TypedInjectError {
   constructor(target: InjectionTarget) {
-    super(`Injector is already disposed. Please don't use it anymore. Tried to ${describeInjectAction(target)} ${name(target)}.`);
+    super(
+      `Injector is already disposed. Please don't use it anymore. Tried to ${describeInjectAction(target)} ${name(target)}.`,
+    );
   }
 }
 
 export class InjectionError extends TypedInjectError {
-  constructor(public readonly path: InjectionTarget[], public readonly cause: Error) {
-    super(`Could not ${describeInjectAction(path[0])} ${path.map(name).join(' -> ')}. Cause: ${cause.message}`);
+  constructor(
+    public readonly path: InjectionTarget[],
+    public readonly cause: Error,
+  ) {
+    super(
+      `Could not ${describeInjectAction(path[0])} ${path.map(name).join(' -> ')}. Cause: ${cause.message}`,
+    );
   }
 
   static create(target: InjectionTarget, error: Error): InjectionError {

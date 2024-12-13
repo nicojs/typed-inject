@@ -28,8 +28,8 @@ async function main() {
     if (i % 10 === 0) {
       console.log(
         `\tIteration ${i}, foo used ${Math.floor((foo.length * i) / ONE_MB)} MB. (heap total: ${Math.floor(
-          process.memoryUsage().heapTotal / ONE_MB
-        )} MB)`
+          process.memoryUsage().heapTotal / ONE_MB,
+        )} MB)`,
       );
     }
     await fooInjector.dispose();

@@ -8,7 +8,7 @@
     "all": "npm run clean && npm run build && npm run lint && npm run test && npm run stryker",
     "start": "tsc -b -w",
     "clean": "rimraf dist",
-    "lint": "eslint . --ext .js,.ts --ignore-path .gitignore --ignore-pattern testResources/**/*.ts --ignore-pattern stryker.conf.js",
+    "lint": "eslint",
     "build": "tsc -b",
     "test": "c8 --exclude-after-remap=false \"--exclude=dist/test/**/*.js\" --check-coverage --reporter=html --report-dir=reports/coverage --lines 100 --functions 100 --branches 100 npm run test:all",
     "test:all": "npm run test:unit && npm run test:integration",
@@ -48,6 +48,7 @@
   },
   "homepage": "https://github.com/nicojs/typed-inject/#readme",
   "devDependencies": {
+    "@eslint/js": "^9.16.0",
     "@stryker-mutator/core": "^8.7.1",
     "@stryker-mutator/mocha-runner": "^8.7.1",
     "@stryker-mutator/typescript-checker": "^8.7.1",
@@ -61,8 +62,7 @@
     "c8": "^10.1.3",
     "chai": "^5.1.2",
     "conventional-changelog-cli": "^5.0.0",
-    "eslint": "^9.16.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-chai-friendly": "^1.0.1",
     "eslint-plugin-prettier": "^5.2.1",
     "mocha": "^11.0.1",
     "prettier": "^3.4.2",
@@ -70,6 +70,7 @@
     "sinon": "^19.0.2",
     "sinon-chai": "^4.0.0",
     "source-map-support": "^0.5.21",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.18.0"
   }
 }
