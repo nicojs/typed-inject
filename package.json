@@ -1,6 +1,6 @@
 {
   "name": "typed-inject",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Type safe dependency injection framework for TypeScript",
   "main": "dist/src/index.js",
   "type": "module",

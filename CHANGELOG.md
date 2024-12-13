@@ -1,3 +1,19 @@
+# [5.0.0](https://github.com/nicojs/typed-inject/compare/v4.0.0...v5.0.0) (2024-12-13)
+
+
+### Features
+
+* **child injector:** Add `createChildInjector` ([#72](https://github.com/nicojs/typed-inject/issues/72)) ([e103564](https://github.com/nicojs/typed-inject/commit/e10356495f27428db85c6a074f369364cfad4871))
+* improve error messages ([#66](https://github.com/nicojs/typed-inject/issues/66)) ([64f7640](https://github.com/nicojs/typed-inject/commit/64f7640a68b76b3d4cac979110798333339309e4))
+* **node:** drop support for node 16 ([#71](https://github.com/nicojs/typed-inject/issues/71)) ([028cd45](https://github.com/nicojs/typed-inject/commit/028cd4553383521e9b7761bba327d545faabf4cc))
+
+
+### BREAKING CHANGES
+
+* **node:** Please use Node 18 or higher
+
+
+
 # [4.0.0](https://github.com/nicojs/typed-inject/compare/v3.0.1...v4.0.0) (2023-05-05)
 
 
