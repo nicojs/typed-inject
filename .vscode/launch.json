@@ -37,6 +37,7 @@
       "args": [
         "--no-timeout",
         "--colors",
+        "--bail",
         "${workspaceFolder}/dist/test/helpers/**/*.js",
         "${workspaceFolder}/dist/test/integration/**/*.js"
       ],
