@@ -8,24 +8,28 @@ describe(InjectorDisposedError.name, () => {
 
   it('should format a correct message', () => {
     expect(new InjectorDisposedError('foo').message).eq(
-      'Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "foo"].'
+      'Injector is already disposed. Please don\'t use it anymore. Tried to resolve [token "foo"].',
     );
     expect(new InjectorDisposedError(class Baz {}).message).eq(
-      "Injector is already disposed. Please don't use it anymore. Tried to inject [class Baz]."
+      "Injector is already disposed. Please don't use it anymore. Tried to inject [class Baz].",
     );
     expect(
       new InjectorDisposedError(() => {
         // idle
-      }).message
-    ).eq("Injector is already disposed. Please don't use it anymore. Tried to inject [function <anonymous>].");
+      }).message,
+    ).eq(
+      "Injector is already disposed. Please don't use it anymore. Tried to inject [function <anonymous>].",
+    );
     expect(new InjectorDisposedError(class {}).message).eq(
-      "Injector is already disposed. Please don't use it anymore. Tried to inject [class <anonymous>]."
+      "Injector is already disposed. Please don't use it anymore. Tried to inject [class <anonymous>].",
     );
     expect(
       new InjectorDisposedError(function bar() {
         // idle
-      }).message
-    ).eq("Injector is already disposed. Please don't use it anymore. Tried to inject [function bar].");
+      }).message,
+    ).eq(
+      "Injector is already disposed. Please don't use it anymore. Tried to inject [function bar].",
+    );
   });
 });
 
@@ -36,7 +40,7 @@ describe(InjectionError.name, () => {
       // idle
     }
     expect(new InjectionError([class Foo {}, bar, 'baz'], cause).message).eq(
-      'Could not inject [class Foo] -> [function bar] -> [token "baz"]. Cause: expected cause'
+      'Could not inject [class Foo] -> [function bar] -> [token "baz"]. Cause: expected cause',
     );
   });
 

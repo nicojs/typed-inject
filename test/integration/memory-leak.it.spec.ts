@@ -9,7 +9,7 @@ describe('typed-inject memory', () => {
       execSync('node --max-old-space-size=100  memory-leak-worker.js', {
         cwd: dirname(fileURLToPath(import.meta.url)),
         stdio: 'inherit',
-      })
+      }),
     ).not.throws();
   });
 });
