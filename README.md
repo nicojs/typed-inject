@@ -14,19 +14,18 @@ _If you are new to 'Dependency Injection'/'Inversion of control', please read up
 
 _If you want to know more about how typed-inject works, please read [my blog article about it](https://medium.com/@jansennico/advanced-typescript-type-safe-dependency-injection-873426e2cc96)_
 
-
-* [🗺️ Installation](#installation)
-* [🎁 Usage](#usage)
-* [💭 Motivation](#motivation)
-* [🗝️ Typesafe? How?](#typesafe-how)
-* [👶 Child injectors](#child-injectors)
-* [🎄 Decorate your dependencies](#decorate-your-dependencies)
-* [♻ Lifecycle control](#lifecycle-control)
-* [🚮 Disposing provided stuff](#disposing-provided-stuff)
-* [✨ Magic tokens](#magic-tokens)
-* [😬 Error handling](#error-handling)
-* [📖 API reference](#api-reference)
-* [🤝 Commendation](#commendation)
+- [🗺️ Installation](#installation)
+- [🎁 Usage](#usage)
+- [💭 Motivation](#motivation)
+- [🗝️ Typesafe? How?](#typesafe-how)
+- [👶 Child injectors](#child-injectors)
+- [🎄 Decorate your dependencies](#decorate-your-dependencies)
+- [♻ Lifecycle control](#lifecycle-control)
+- [🚮 Disposing provided stuff](#disposing-provided-stuff)
+- [✨ Magic tokens](#magic-tokens)
+- [😬 Error handling](#error-handling)
+- [📖 API reference](#api-reference)
+- [🤝 Commendation](#commendation)
 
 <a name="installation"></a>
 
@@ -66,7 +65,7 @@ interface Logger {
 const logger: Logger = {
   info(message: string) {
     console.log(message);
-  }
+  },
 };
 
 class HttpClient {
@@ -75,11 +74,16 @@ class HttpClient {
 }
 
 class MyService {
-  constructor(private http: HttpClient, private log: Logger) {}
+  constructor(
+    private http: HttpClient,
+    private log: Logger,
+  ) {}
   public static inject = ['httpClient', 'logger'] as const;
 }
 
-const appInjector = createInjector().provideValue('logger', logger).provideClass('httpClient', HttpClient);
+const appInjector = createInjector()
+  .provideValue('logger', logger)
+  .provideClass('httpClient', HttpClient);
 
 const myService = appInjector.injectClass(MyService);
 // Dependencies for MyService validated and injected
@@ -105,12 +109,17 @@ class HttpClient {
 }
 
 class MyService {
-  constructor(private http: HttpClient, private log: Logger) {}
+  constructor(
+    private http: HttpClient,
+    private log: Logger,
+  ) {}
   public static inject = ['logger', 'httpClient'] as const;
   // ERROR! Types of parameters 'http' and 'args_0' are incompatible
 }
 
-const appInjector = createInjector().provideValue('logger', logger).provideClass('httpClient', HttpClient);
+const appInjector = createInjector()
+  .provideValue('logger', logger)
+  .provideClass('httpClient', HttpClient);
 
 const myService = appInjector.injectClass(MyService);
 ```
@@ -205,12 +214,14 @@ function fooDecorator(foo: Foo) {
       console.log('before call');
       foo.bar();
       console.log('after call');
-    }
+    },
   };
 }
 fooDecorator.inject = ['foo'] as const;
 
-const fooProvider = createInjector().provideClass('foo', Foo).provideFactory('foo', fooDecorator);
+const fooProvider = createInjector()
+  .provideClass('foo', Foo)
+  .provideFactory('foo', fooDecorator);
 const foo = fooProvider.resolve('foo');
 
 foo.bar();
@@ -240,7 +251,9 @@ class Foo {
   static inject = ['log'] as const;
 }
 
-const fooProvider = injector.provideFactory('log', loggerFactory, Scope.Transient).provideClass('foo', Foo, Scope.Singleton);
+const fooProvider = injector
+  .provideFactory('log', loggerFactory, Scope.Transient)
+  .provideClass('foo', Foo, Scope.Singleton);
 const foo = fooProvider.resolve('foo');
 const fooCopy = fooProvider.resolve('foo');
 const log = fooProvider.resolve('log');
@@ -349,13 +362,13 @@ class Bar {
 }
 class Baz {
   static inject = ['foo', 'bar'] as const;
-  constructor(public foo: Foo, public bar: Bar) {}
+  constructor(
+    public foo: Foo,
+    public bar: Bar,
+  ) {}
 }
 const rootInjector = createInjector();
-rootInjector
-  .provideClass('foo', Foo)
-  .provideClass('bar', Bar)
-  .injectClass(Baz);
+rootInjector.provideClass('foo', Foo).provideClass('bar', Bar).injectClass(Baz);
 await fooProvider.dispose();
 // => "Foo disposed"
 // => "Bar disposed",
@@ -369,15 +382,20 @@ Any instance created with `injectClass` or `injectFactory` will _not_ be dispose
 
 Any `Injector` instance can always provide the following tokens:
 
-| Token name       | Token value   | Description                                                                                        |
-| ---------------- | ------------- | -------------------------------------------------------------------------------------------------- |
-| `INJECTOR_TOKEN` | `'$injector'` | Injects the current injector                                                                       |
+| Token name       | Token value   | Description                                                                                         |
+| ---------------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| `INJECTOR_TOKEN` | `'$injector'` | Injects the current injector                                                                        |
 | `TARGET_TOKEN`   | `'$target'`   | The class or function in which the current values are injected, or `undefined` if resolved directly |
 
 An example:
 
 ```ts
-import { createInjector, Injector, TARGET_TOKEN, INJECTOR_TOKEN } from 'typed-inject';
+import {
+  createInjector,
+  Injector,
+  TARGET_TOKEN,
+  INJECTOR_TOKEN,
+} from 'typed-inject';
 
 class Foo {
   constructor(injector: Injector<{}>, target: Function | undefined) {}
@@ -476,7 +494,7 @@ const foo /*: Foo*/ = injector.injectClass(Foo);
 
 #### `injector.injectFunction(fn: InjectableFunction)`
 
-This method injects the function with requested tokens from the injector, invokes it and returns the result. 
+This method injects the function with requested tokens from the injector, invokes it and returns the result.
 
 It is a shortcut for calling the provided function with the values from the injector.
 
@@ -530,22 +548,44 @@ function loggerFactory(target: Function | undefined) {
   return new Logger((target && target.name) || '');
 }
 loggerFactory.inject = [TARGET_TOKEN] as const;
-const fooBarInjector = fooInjector.provideFactory('logger', loggerFactory, Scope.Transient);
+const fooBarInjector = fooInjector.provideFactory(
+  'logger',
+  loggerFactory,
+  Scope.Transient,
+);
 ```
 
-#### `injector.provideFactory(token: Token, Class: InjectableClass<TContext>, scope = Scope.Singleton): Injector<ChildContext<TContext, Token, R>>`
+#### `injector.provideClass(token: Token, Class: InjectableClass<TContext>, scope = Scope.Singleton): Injector<ChildContext<TContext, Token, R>>`
 
 Create a child injector that can provide a value using instances of `Class` for token `'token'`. The new child injector can resolve all tokens the parent injector can, as well as the new `'token'`.
 
 Scope is also supported here, for more info, see `provideFactory`.
+
+#### `injector.createChildInjector(): Injector<TContext>`
+
+Create a child injector that can provide exactly the same as the parent injector. Contrary to its `provideXxx` counterparts,this will create a new disposable scope without providing additional injectable values.
+
+```ts
+const parentInjector = createInjector().provideValue('foo', 'bar');
+for (const task of tasks) {
+  try {
+    const scope = parentInjector.createChildInjector();
+    const foo = scope.provideClass('baz', DisposableBaz).injectClass(Foo);
+    foo.handle(task);
+  } finally {
+    await scope.dispose(); // Dispose the scope, including instances of DisposableBaz
+    // Next task gets a fresh scope
+  }
+}
+```
 
 #### `injector.dispose(): Promise<void>`
 
 Use `dispose` to explicitly dispose the `injector`. This will result in the following (in order):
 
 1. Call `dispose` on each child injector created from this injector.
-2. It will call `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`). 
-3. It will also await any promise that might have been returned by disposable dependencies. 
+2. It will call `dispose` on any dependency created by the injector (if it exists) using `provideClass` or `provideFactory` (**not** `provideValue` or `injectXXX`).
+3. It will also await any promise that might have been returned by disposable dependencies.
 
 _Note: this behavior changed since v2. Before v2, the parent injector was always disposed before the child injector._
 _Note: this behavior changed again in v3, calling `dispose` on a child injector will **no longer** dispose it's parent injector and instead will dispose it's child injectors. The order of disposal is still child first._
