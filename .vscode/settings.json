@@ -2,13 +2,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "eslint.validate": [
-    "javascript",
-    "typescript"
-  ],
+  "eslint.validate": ["javascript", "typescript"],
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "cSpell.words": [
-    "tseslint",
-    "Typesafe"
-  ]
+  "cSpell.words": ["tseslint", "Typesafe"],
+  "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }]
 }

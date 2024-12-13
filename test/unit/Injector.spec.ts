@@ -154,6 +154,31 @@ describe('InjectorImpl', () => {
       const actualFoo = barBazInjector.injectClass(Foo);
       expect(actualFoo.injector).eq(barBazInjector);
     });
+
+    it('should be able to create a child injector with its own scope', async () => {
+      // Arrange
+      const parentInjector = rootInjector.provideValue('foo', 42);
+      let fooDisposed = false;
+      class Foo implements Disposable {
+        constructor(public foo: number) {}
+        public static inject = tokens('foo');
+        public dispose(): void {
+          fooDisposed = true;
+        }
+      }
+
+      // Act
+      const actualChildInjector = parentInjector.createChildInjector();
+      const appInjector = actualChildInjector.provideClass('foo', Foo);
+      appInjector.resolve('foo');
+
+      // Assert
+      await actualChildInjector.dispose();
+      expect(fooDisposed).true;
+      expect(() =>
+        parentInjector.createChildInjector().injectFunction(() => {}),
+      ).not.throw();
+    });
   });
 
   describe('ChildInjector', () => {
