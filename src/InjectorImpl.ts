@@ -270,7 +270,7 @@ abstract class ChildWithProvidedInjector<
   }
 
   protected override async disposeInjectedValues() {
-    const promisesToAwait = [...this.disposables.values()].map((disposable) =>
+    const promisesToAwait = Array.from(this.disposables).map((disposable) =>
       disposable.dispose(),
     );
     await Promise.all(promisesToAwait);
