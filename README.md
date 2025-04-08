@@ -23,6 +23,7 @@ _If you want to know more about how typed-inject works, please read [my blog art
 - [♻ Lifecycle control](#lifecycle-control)
 - [🚮 Disposing provided stuff](#disposing-provided-stuff)
 - [✨ Magic tokens](#magic-tokens)
+- [🏷️ Internally registered tokens](#internally-registered-tokens)
 - [😬 Error handling](#error-handling)
 - [📖 API reference](#api-reference)
 - [🤝 Commendation](#commendation)
@@ -403,6 +404,53 @@ class Foo {
 }
 
 const foo = createInjector().inject(Foo);
+```
+
+<a name="internally-registered-tokens"></a>
+
+## 🏷️ Internally registered tokens / Known Classes and Known Factories
+
+You can register class tokens internally in the classes that need to be provided, and then provide such classes by using the `provideClass` method's overload. To implement the "Known Class", add a `static knownAs` property with a string literal value. This way, it is possible to create a hierarchy of class dependencies without relying on arbitrarily specified tokens, instead opting to consolidate said tokens within the classes themselves.
+
+```ts
+import { createInjector } from 'typed-inject';
+
+class Foo {
+  static knownAs = "FooToken" as const;
+}
+
+class Bar {
+  static knownAs = "BarToken" as const;
+
+  static inject = [ Foo.knownAs ] as const;
+
+  constructor(foo: Foo) {}
+}
+
+const injector = createInjector()
+  .provideClass(Foo)
+  .provideClass(Bar);
+```
+
+Similarly, it works with `provideFactory` method's overload.
+
+```ts
+import { createInjector } from 'typed-inject';
+
+function fooFactory() {
+  return "foo factory called";
+}
+fooFactory.knownAs = 'Foo' as const;
+
+function barFactory() {
+  return "bar factory called";
+}
+barFactory.inject = [ fooFactory.knownAs ] as const;
+barFactory.knownAs = "Bar" as const;
+
+const injector = createInjector()
+  .provideFactory(fooFactory)
+  .provideFactory(barFactory);
 ```
 
 <a name="error-handling"></a>
