@@ -89,12 +89,13 @@ export interface Injector<TContext = {}> {
    * instances that have Singleton scope, ensuring they are cached for future use.
    * @example
    * ```ts
-   * const injector = createInjector()
+   * const rootInjector = createInjector();
+   * const injector = rootInjector
    *   .provideClass('database', Database, Scope.Singleton)
    *   .provideFactory('logger', createLogger, Scope.Singleton);
    *
    * // Pre-cache all singleton instances
-   * await injector.resolveAll();
+   * await rootInjector.resolveAll();
    *
    * // These will now use cached instances
    * const db = injector.resolve('database');
@@ -104,7 +105,7 @@ export interface Injector<TContext = {}> {
   resolveAll(): Promise<void>;
 
   /**
-   * Explicitly dispose the `injector`.
+   * Explicitly dispose the `injector` and all it's child injectors.
    * @see {@link https://github.com/nicojs/typed-inject?tab=readme-ov-file#disposing-provided-stuff}
    */
   dispose(): Promise<void>;
