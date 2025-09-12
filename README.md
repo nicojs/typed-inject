@@ -516,7 +516,18 @@ const baz /*: number*/ = injector.injectFunction(Foo);
 
 #### `injector.resolve(token: Token): CorrespondingType<TContext, Token>`
 
-The `resolve` method lets you resolve tokens by hand.
+The `resolve` method allows you to manually resolve a single token from the injector. This is useful when you need to retrieve a dependency without injecting it into a class or function. Use it when you need to retrieve a single dependency programmatically, in scenarios where you want to conditionally resolve dependencies, when integrating with code that doesn't use dependency injection, or for debugging and testing purposes.
+
+```ts
+const logger = injector.resolve('logger');
+const httpClient = injector.resolve('httpClient');
+
+// Use the resolved dependencies directly
+logger.info('Application started');
+const response = await httpClient.get('/api/data');
+```
+
+The resolve method can be compared with injection methods:
 
 ```ts
 const foo = injector.resolve('foo');
@@ -526,6 +537,70 @@ function retrieveFoo(foo: number) {
 }
 retrieveFoo.inject = ['foo'] as const;
 const foo2 = injector.injectFunction(retrieveFoo);
+
+#### `injector.resolveAll(): Promise<void>`
+
+The `resolveAll` method pre-caches all singleton-scoped dependencies in the current injector and its child injectors. This is useful for eager initialization and ensuring all dependencies are created upfront. Use it when you want to validate that all dependencies can be created successfully at startup, to pre-warm your application by creating all singletons before handling requests, for detecting circular dependencies or configuration issues early, or when you need predictable initialization order.
+
+```ts
+const rootInjector = createInjector();
+const appInjector = rootInjector
+  .provideClass('database', Database, Scope.Singleton)
+  .provideFactory('logger', createLogger, Scope.Singleton)
+  .provideClass('cache', RedisCache, Scope.Singleton);
+
+// Pre-initialize all singletons
+// Note: this only traverses children, just like dispose, so we keep a reference to the root injector
+await rootInjector.resolveAll();
+
+// Now all singletons are cached and ready
+const db = appInjector.resolve('database');    // Returns cached instance
+const logger = appInjector.resolve('logger');  // Returns cached instance
+const cache = appInjector.resolve('cache');    // Returns cached instance
+```
+
+The behavior differs between singleton and transient scopes:
+
+```ts
+const rootInjector = createInjector();
+const mixedInjector = rootInjector
+  .provideFactory('singleton', () => {
+    console.log('Creating singleton');
+    return { type: 'singleton' };
+  }, Scope.Singleton)
+  .provideFactory('transient', () => {
+    console.log('Creating transient');
+    return { type: 'transient' };
+  }, Scope.Transient);
+
+await rootInjector.resolveAll();
+// Output: "Creating singleton"
+// Note: transient is NOT created
+
+mixedInjector.resolve('singleton'); // No output - uses cached instance
+mixedInjector.resolve('transient'); // Output: "Creating transient"
+```
+
+The method recursively resolves singletons in child injectors:
+
+```ts
+const parentInjector = createInjector()
+  .provideClass('parentService', ParentService, Scope.Singleton);
+
+const childInjector = parentInjector
+  .provideClass('childService', ChildService, Scope.Singleton);
+
+const grandchildInjector = childInjector
+  .provideClass('grandchildService', GrandchildService, Scope.Singleton);
+
+// Resolves all singletons in the entire injector chain
+// Note: this follows the same scoping as dispose
+await parentInjector.resolveAll();
+
+// All of these return cached instances
+const parent = grandchildInjector.resolve('parentService');
+const child = grandchildInjector.resolve('childService');
+const grandchild = grandchildInjector.resolve('grandchildService');
 ```
 
 #### `injector.provideValue(token: Token, value: R): Injector<ChildContext<TContext, Token, R>>`

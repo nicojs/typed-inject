@@ -619,6 +619,287 @@ describe('InjectorImpl', () => {
     });
   });
 
+  describe('resolveAll', () => {
+    it('should pre-cache all singleton instances in the current scope', async () => {
+      // Arrange
+      const singletonSpy = sinon.spy();
+      const transientSpy = sinon.spy();
+
+      class SingletonService {
+        constructor() {
+          singletonSpy();
+        }
+      }
+
+      function createTransientService() {
+        transientSpy();
+        return { transient: true };
+      }
+
+      // Create separate injectors to test resolveAll on each
+      const singletonInjector = rootInjector.provideClass(
+        'singleton',
+        SingletonService,
+        Scope.Singleton,
+      );
+
+      const bothInjector = singletonInjector.provideFactory(
+        'transient',
+        createTransientService,
+        Scope.Transient,
+      );
+
+      // Act - resolveAll on the singleton injector
+      await singletonInjector.resolveAll();
+
+      // Assert - singleton should be cached
+      expect(singletonSpy.called).to.be.true;
+
+      // Verify cached by resolving again
+      singletonInjector.resolve('singleton');
+      expect(singletonSpy.callCount).to.equal(1); // Still only called once
+
+      // Act - resolveAll on the transient injector
+      await bothInjector.resolveAll();
+
+      // Assert - transient should not be cached
+      expect(transientSpy.called).to.be.false;
+    });
+
+    it('should work with nested injectors', async () => {
+      // Arrange
+      const service1Spy = sinon.spy();
+      const service2Spy = sinon.spy();
+      const service3Spy = sinon.spy();
+
+      class Service1 {
+        constructor() {
+          service1Spy();
+        }
+      }
+
+      class Service2 {
+        constructor() {
+          service2Spy();
+        }
+      }
+
+      class Service3 {
+        constructor() {
+          service3Spy();
+        }
+      }
+
+      // Create a chain of injectors
+      const injector1 = rootInjector.provideClass(
+        'service1',
+        Service1,
+        Scope.Singleton,
+      );
+
+      const injector2 = injector1.provideClass(
+        'service2',
+        Service2,
+        Scope.Singleton,
+      );
+
+      const injector3 = injector2.provideClass(
+        'service3',
+        Service3,
+        Scope.Singleton,
+      );
+
+      // Act - resolveAll on the last injector only resolves itself
+      await injector3.resolveAll();
+
+      // Assert - only service3 should be resolved
+      expect(service3Spy.called).to.be.true;
+      expect(service2Spy.called).to.be.false;
+      expect(service1Spy.called).to.be.false;
+
+      // Act - resolveAll on the middle injector
+      await injector2.resolveAll();
+
+      // Assert - service2 should now be resolved
+      expect(service2Spy.called).to.be.true;
+      expect(service1Spy.called).to.be.false;
+
+      // Act - resolveAll on the first injector
+      await injector1.resolveAll();
+
+      // Assert - service1 should now be resolved
+      expect(service1Spy.called).to.be.true;
+    });
+
+    it('should handle dependencies between services', async () => {
+      // Arrange
+      const databaseSpy = sinon.spy();
+      const loggerSpy = sinon.spy();
+      const serviceSpy = sinon.spy();
+
+      class Database {
+        constructor() {
+          databaseSpy();
+        }
+      }
+
+      class Logger {
+        constructor() {
+          loggerSpy();
+        }
+      }
+
+      class Service {
+        constructor(
+          public readonly db: Database,
+          public readonly logger: Logger,
+        ) {
+          serviceSpy();
+        }
+        public static inject = tokens('database', 'logger');
+      }
+
+      const injector = rootInjector
+        .provideClass('database', Database, Scope.Singleton)
+        .provideClass('logger', Logger, Scope.Singleton)
+        .provideClass('service', Service, Scope.Singleton);
+
+      // Act
+      await injector.resolveAll();
+
+      // Assert
+      expect(databaseSpy.called).to.be.true;
+      expect(loggerSpy.called).to.be.true;
+      expect(serviceSpy.called).to.be.true;
+
+      // Verify the service got correct dependencies
+      const service = injector.resolve('service');
+      expect(service.db).to.be.instanceOf(Database);
+      expect(service.logger).to.be.instanceOf(Logger);
+    });
+
+    it('should not fail if singleton resolution throws an error', async () => {
+      // Arrange
+      class FailingService {
+        constructor() {
+          throw new Error('Service initialization failed');
+        }
+      }
+
+      class WorkingService {
+        constructor() {
+          // This one works
+        }
+      }
+
+      const injector = rootInjector
+        .provideClass('failing', FailingService, Scope.Singleton)
+        .provideClass('working', WorkingService, Scope.Singleton);
+
+      // Act & Assert - should not throw
+      await injector.resolveAll();
+
+      // The working service should still be cached
+      const working = injector.resolve('working');
+      expect(working).to.be.instanceOf(WorkingService);
+
+      // The failing service should still throw when accessed directly
+      expect(() => injector.resolve('failing')).to.throw(
+        'Service initialization failed',
+      );
+    });
+
+    it('should work with factory providers', async () => {
+      // Arrange
+      const factorySpy = sinon.spy();
+      let instanceCount = 0;
+
+      function createService() {
+        factorySpy();
+        return { id: ++instanceCount };
+      }
+
+      const injector = rootInjector.provideFactory(
+        'service',
+        createService,
+        Scope.Singleton,
+      );
+
+      // Act
+      await injector.resolveAll();
+
+      // Assert
+      expect(factorySpy.called).to.be.true;
+
+      // Verify cached
+      const service1 = injector.resolve('service');
+      const service2 = injector.resolve('service');
+      expect(service1).to.equal(service2);
+      expect(service1.id).to.equal(1);
+    });
+
+    it('should work with value providers', async () => {
+      // Arrange
+      const value = { config: 'test' };
+      const injector = rootInjector.provideValue('config', value);
+
+      // Act & Assert - should not throw
+      await injector.resolveAll();
+
+      // Value providers are not cached, but should not cause issues
+      const config = injector.resolve('config');
+      expect(config).to.equal(value);
+    });
+
+    it('should work with child injectors created via createChildInjector', async () => {
+      // Arrange
+      const parentSpy = sinon.spy();
+      const childSpy = sinon.spy();
+
+      class ParentService {
+        constructor() {
+          parentSpy();
+        }
+      }
+
+      class ChildService {
+        constructor() {
+          childSpy();
+        }
+      }
+
+      const parentInjector = rootInjector.provideClass(
+        'parentService',
+        ParentService,
+        Scope.Singleton,
+      );
+      const childInjector = parentInjector.createChildInjector();
+      const childWithService = childInjector.provideClass(
+        'childService',
+        ChildService,
+        Scope.Singleton,
+      );
+
+      // Act - resolveAll on child injector should not resolve parent's providers
+      await childInjector.resolveAll();
+
+      // Assert - parent's singletons should NOT be resolved
+      expect(parentSpy.called).to.be.false;
+
+      // Act - resolveAll on parent injector
+      await parentInjector.resolveAll();
+
+      // Assert - parent's singleton should now be resolved
+      expect(parentSpy.called).to.be.true;
+
+      // Act - resolveAll on child with service
+      await childWithService.resolveAll();
+
+      // Assert - child's singleton should be resolved
+      expect(childSpy.called).to.be.true;
+    });
+  });
+
   describe('dependency tree', () => {
     it('should be able to inject a dependency tree', () => {
       // Arrange

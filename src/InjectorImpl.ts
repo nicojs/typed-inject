@@ -50,7 +50,7 @@ const DEFAULT_SCOPE = Scope.Singleton;
 */
 
 abstract class AbstractInjector<TContext> implements Injector<TContext> {
-  private childInjectors: Set<Injector<any>> = new Set();
+  protected childInjectors: Set<Injector<any>> = new Set();
 
   public injectClass<R, Tokens extends InjectionToken<TContext>[]>(
     Class: InjectableClass<TContext, R, Tokens>,
@@ -140,6 +140,14 @@ abstract class AbstractInjector<TContext> implements Injector<TContext> {
   ): TContext[Token] {
     this.throwIfDisposed(token);
     return this.resolveInternal(token, target);
+  }
+
+  public async resolveAll(): Promise<void> {
+    const promises: Promise<void>[] = [];
+    for (const child of this.childInjectors) {
+      promises.push(child.resolveAll());
+    }
+    await Promise.all(promises);
   }
 
   protected throwIfDisposed(injectableOrToken: InjectionTarget) {
@@ -254,6 +262,16 @@ abstract class ChildWithProvidedInjector<
     } else {
       return this.parent.resolve(token as any, target) as any;
     }
+  }
+
+  public override async resolveAll(): Promise<void> {
+    this.throwIfDisposed(this.token);
+    if (this.scope === Scope.Singleton && !this.cached) {
+      const value = this.result(undefined);
+      this.addToCacheIfNeeded(value);
+      this.registerProvidedValue(value);
+    }
+    await super.resolveAll();
   }
 
   private addToCacheIfNeeded(value: TProvided) {
