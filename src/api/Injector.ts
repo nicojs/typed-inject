@@ -84,6 +84,26 @@ export interface Injector<TContext = {}> {
   createChildInjector(): Injector<TContext>;
 
   /**
+   * Resolve all tokens in the current dispose scope, pre-caching all singleton instances.
+   * This will traverse through all child injectors and resolve any ClassProvider and FactoryProvider
+   * instances that have Singleton scope, ensuring they are cached for future use.
+   * @example
+   * ```ts
+   * const injector = createInjector()
+   *   .provideClass('database', Database, Scope.Singleton)
+   *   .provideFactory('logger', createLogger, Scope.Singleton);
+   *
+   * // Pre-cache all singleton instances
+   * await injector.resolveAll();
+   *
+   * // These will now use cached instances
+   * const db = injector.resolve('database');
+   * const logger = injector.resolve('logger');
+   * ```
+   */
+  resolveAll(): Promise<void>;
+
+  /**
    * Explicitly dispose the `injector`.
    * @see {@link https://github.com/nicojs/typed-inject?tab=readme-ov-file#disposing-provided-stuff}
    */
