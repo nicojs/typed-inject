@@ -1,3 +1,5 @@
+import { TokenType } from './api/Token.js';
+
 /**
  * Helper method to create string literal tuple type.
  * @example
@@ -7,6 +9,6 @@
  * ```
  * @param tokens The tokens as args
  */
-export function tokens<TS extends readonly string[]>(...tokens: TS): TS {
+export function tokens<TS extends readonly TokenType[]>(...tokens: TS): TS {
   return tokens;
 }

@@ -1,7 +1,8 @@
 import { InjectableClass, InjectableFunction } from './Injectable.js';
 import { InjectionToken } from './InjectionToken.js';
 import { Scope } from './Scope.js';
-import { TChildContext } from './TChildContext.js';
+import { TChildContext, TImportContext } from './TChildContext.js';
+import { TokenType } from './Token.js';
 
 export interface Injector<TContext = {}> {
   /**
@@ -28,7 +29,7 @@ export interface Injector<TContext = {}> {
    * @param token The token to associate with the value.
    * @param value The value to provide.
    */
-  provideValue<Token extends string, R>(
+  provideValue<Token extends TokenType, R>(
     token: Token,
     value: R,
   ): Injector<TChildContext<TContext, R, Token>>;
@@ -39,7 +40,7 @@ export interface Injector<TContext = {}> {
    * @param scope Decide whether the value must be cached after the factory is invoked once. Use `Scope.Singleton` to enable caching (default), or `Scope.Transient` to disable caching.
    */
   provideClass<
-    Token extends string,
+    Token extends TokenType,
     R,
     Tokens extends readonly InjectionToken<TContext>[],
   >(
@@ -54,7 +55,7 @@ export interface Injector<TContext = {}> {
    * @param scope Decide whether the value must be cached after the factory is invoked once. Use `Scope.Singleton` to enable caching (default), or `Scope.Transient` to disable caching.
    */
   provideFactory<
-    Token extends string,
+    Token extends TokenType,
     R,
     Tokens extends readonly InjectionToken<TContext>[],
   >(
@@ -62,6 +63,38 @@ export interface Injector<TContext = {}> {
     factory: InjectableFunction<TContext, R, Tokens>,
     scope?: Scope,
   ): Injector<TChildContext<TContext, R, Token>>;
+
+  /**
+   * Import all tokens from another injector into this one. The imported injector's tokens
+   * become available for injection. The current injector's tokens take priority in case of conflict.
+   * Lifecycle: this injector becomes a child of the imported injector — disposing the imported
+   * injector will first dispose this one.
+   * @param injector The injector to import from.
+   */
+  import<TImportedContext>(
+    injector: Injector<TImportedContext>,
+  ): Injector<TImportContext<TContext, TImportedContext>>;
+  /**
+   * Import a subset of tokens from another injector into this one.
+   * @param injector The injector to import from.
+   * @param tokens The list of tokens to import (whitelist).
+   */
+  import<
+    TImportedContext,
+    Tokens extends readonly (keyof TImportedContext & TokenType)[],
+  >(
+    injector: Injector<TImportedContext>,
+    tokens: Tokens,
+  ): Injector<TImportContext<TContext, Pick<TImportedContext, Tokens[number]>>>;
+
+  /**
+   * Create a restricted view of this injector that only exposes the specified tokens.
+   * Both TypeScript types and runtime resolution are limited to the exported tokens.
+   * @param tokens The list of tokens to expose publicly.
+   */
+  export<Tokens extends readonly (keyof TContext & TokenType)[]>(
+    tokens: Tokens,
+  ): Injector<Pick<TContext, Tokens[number]>>;
 
   /**
    * Create a child injector that can provide exactly the same as the parent injector.

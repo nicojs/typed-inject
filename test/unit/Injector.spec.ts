@@ -619,6 +619,177 @@ describe('InjectorImpl', () => {
     });
   });
 
+  describe('import', () => {
+    it('should resolve tokens from an imported injector', () => {
+      const moduleB = createInjector().provideValue('x', 42);
+      const actual = createInjector().import(moduleB).resolve('x');
+      expect(actual).eq(42);
+    });
+
+    it('should give priority to imported tokens over earlier own-chain declarations', () => {
+      const moduleB = createInjector().provideValue('x', 'from B');
+      const actual = createInjector()
+        .provideValue('x', 'from A')
+        .import(moduleB)
+        .resolve('x');
+      expect(actual).eq('from B');
+    });
+
+    it('should give priority to last import over first import when conflict', () => {
+      const moduleA = createInjector().provideValue('x', 'from A');
+      const moduleB = createInjector().provideValue('x', 'from B');
+      const actual = createInjector().import(moduleA).import(moduleB).resolve('x');
+      expect(actual).eq('from B');
+    });
+
+    it('should resolve own and imported tokens together', () => {
+      const moduleB = createInjector().provideValue('b', 2);
+      const injector = createInjector().provideValue('a', 1).import(moduleB);
+      expect(injector.resolve('a')).eq(1);
+      expect(injector.resolve('b')).eq(2);
+    });
+
+    it('should share singleton from imported injector across multiple importers', () => {
+      let instanceCount = 0;
+      class MyService {
+        public readonly id = ++instanceCount;
+      }
+      const moduleB = createInjector().provideClass('svc', MyService);
+      const a1 = createInjector().import(moduleB);
+      const a2 = createInjector().import(moduleB);
+      expect(a1.resolve('svc')).eq(a2.resolve('svc'));
+      expect(instanceCount).eq(1);
+    });
+
+    it('should filter tokens when tokens whitelist is provided', () => {
+      const moduleB = createInjector()
+        .provideValue('x', 1)
+        .provideValue('y', 2);
+      const injector = createInjector().import(moduleB, ['x'] as const);
+      expect(injector.resolve('x')).eq(1);
+    });
+
+    it('should throw when resolving a non-whitelisted token', () => {
+      const moduleB = createInjector()
+        .provideValue('x', 1)
+        .provideValue('y', 2);
+      const injector = createInjector().import(moduleB, ['x'] as const);
+      expect(() => (injector as any).resolve('y')).throws(
+        'No provider found for "y"',
+      );
+    });
+
+    it('should dispose importer before imported on imported.dispose()', async () => {
+      const log: string[] = [];
+      class ImportedService {
+        public dispose() {
+          log.push('importedService');
+        }
+      }
+      class ImporterService {
+        public dispose() {
+          log.push('importerService');
+        }
+      }
+      const moduleB = createInjector().provideClass('imp', ImportedService);
+      moduleB.resolve('imp');
+      const moduleA = createInjector()
+        .import(moduleB)
+        .provideClass('svc', ImporterService);
+      moduleA.resolve('svc');
+
+      await moduleB.dispose();
+
+      expect(log[0]).eq('importerService');
+      expect(log[1]).eq('importedService');
+    });
+
+    it('should remove itself from imported childInjectors on dispose', async () => {
+      const moduleB = createInjector().provideValue('x', 1);
+      const importNode = createInjector().import(moduleB);
+      await importNode.dispose();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      expect((moduleB as any).childInjectors.size).eq(0);
+    });
+
+    it('should throw after importer is disposed', async () => {
+      const moduleB = createInjector().provideValue('x', 1);
+      const injector = createInjector().import(moduleB);
+      await injector.dispose();
+      expect(() => injector.resolve('x')).throws(InjectorDisposedError);
+    });
+
+    it('should throw when calling import on a disposed injector', async () => {
+      const injector = createInjector();
+      await injector.dispose();
+      expect(() => injector.import(createInjector())).throws(InjectorDisposedError);
+    });
+
+    it('should rethrow non-TokenNotFoundError from parent chain', () => {
+      const expectedCause = new Error('factory error');
+      const injector = createInjector()
+        .provideFactory('broken', () => { throw expectedCause; })
+        .import(createInjector().provideValue('y', 1));
+      expect(() => (injector as any).resolve('broken')).throws('factory error');
+    });
+
+    it('should rethrow non-TokenNotFoundError from imported chain', () => {
+      const expectedCause = new Error('imported factory error');
+      const broken = createInjector().provideFactory('broken', () => { throw expectedCause; });
+      const injector = createInjector().import(broken);
+      expect(() => (injector as any).resolve('broken')).throws('imported factory error');
+    });
+  });
+
+  describe('export', () => {
+    it('should resolve exported tokens', () => {
+      const exported = createInjector()
+        .provideValue('x', 1)
+        .provideValue('y', 2)
+        .export(['x'] as const);
+      expect(exported.resolve('x')).eq(1);
+    });
+
+    it('should hide non-exported tokens at runtime', () => {
+      const exported = createInjector()
+        .provideValue('x', 1)
+        .provideValue('y', 2)
+        .export(['x'] as const);
+      expect(() => (exported as any).resolve('y')).throws(
+        'No provider found for "y"',
+      );
+    });
+
+    it('should work with import — only exported tokens visible to importer', () => {
+      const moduleB = createInjector()
+        .provideValue('logger', 'file-logger')
+        .provideValue('svc', 'serviceA')
+        .export(['svc'] as const);
+      const injector = createInjector().import(moduleB);
+      expect(injector.resolve('svc')).eq('serviceA');
+      expect(() => (injector as any).resolve('logger')).throws(
+        'No provider found for "logger"',
+      );
+    });
+
+    it('should dispose via parent lifecycle', async () => {
+      const dispose = sinon.stub();
+      class MyService {
+        public dispose = dispose;
+      }
+      const base = createInjector().provideClass('svc', MyService);
+      base.export(['svc'] as const).resolve('svc');
+      await base.dispose();
+      expect(dispose).called;
+    });
+
+    it('should throw when calling export on a disposed injector', async () => {
+      const injector = createInjector();
+      await injector.dispose();
+      expect(() => injector.export(['x'] as any)).throws(InjectorDisposedError);
+    });
+  });
+
   describe('dependency tree', () => {
     it('should be able to inject a dependency tree', () => {
       // Arrange
@@ -706,6 +877,87 @@ describe('InjectorImpl', () => {
             'Could not inject [class Parent] -> [token "child"] -> [class Child] -> [token "grandChild"] -> [class GrandChild]. Cause: Expected error',
           path: [Parent, 'child', Child, 'grandChild', GrandChild],
         });
+    });
+  });
+
+  describe('Symbol keys', () => {
+    it('should resolve a value provided with a Symbol token', () => {
+      const myKey = Symbol('myKey');
+      const sut = rootInjector.provideValue(myKey, 42);
+      expect(sut.resolve(myKey)).eq(42);
+    });
+
+    it('should resolve a class provided with a Symbol token', () => {
+      const myKey = Symbol('myKey');
+      class Foo {}
+      const sut = rootInjector.provideClass(myKey, Foo);
+      expect(sut.resolve(myKey)).instanceOf(Foo);
+    });
+
+    it('should resolve a factory provided with a Symbol token', () => {
+      const myKey = Symbol('myKey');
+      const sut = rootInjector.provideFactory(myKey, () => 'hello');
+      expect(sut.resolve(myKey)).eq('hello');
+    });
+
+    it('should inject a Symbol-keyed dependency into a class', () => {
+      const fooKey = Symbol('foo');
+      class MyClass {
+        constructor(public foo: number) {}
+        public static inject = tokens(fooKey);
+      }
+      const actual = rootInjector.provideValue(fooKey, 99).injectClass(MyClass);
+      expect(actual.foo).eq(99);
+    });
+
+    it('should inject a Symbol-keyed dependency into a function', () => {
+      const fooKey = Symbol('foo');
+      let received: number | undefined;
+      function myFn(foo: number) {
+        received = foo;
+      }
+      myFn.inject = tokens(fooKey);
+      rootInjector.provideValue(fooKey, 7).injectFunction(myFn);
+      expect(received).eq(7);
+    });
+
+    it('should support mixed string and Symbol tokens in the same injector chain', () => {
+      const symKey = Symbol('symKey');
+      const sut = rootInjector.provideValue('str', 'hello').provideValue(symKey, 42);
+      expect(sut.resolve('str')).eq('hello');
+      expect(sut.resolve(symKey)).eq(42);
+    });
+
+    it('should resolve Symbol tokens from an imported injector', () => {
+      const myKey = Symbol('myKey');
+      const moduleB = createInjector().provideValue(myKey, 'from B');
+      const actual = createInjector().import(moduleB).resolve(myKey);
+      expect(actual).eq('from B');
+    });
+
+    it('should filter Symbol tokens when a whitelist is provided on import', () => {
+      const key1 = Symbol('key1');
+      const key2 = Symbol('key2');
+      const moduleB = createInjector().provideValue(key1, 1).provideValue(key2, 2);
+      const injector = createInjector().import(moduleB, [key1] as const);
+      expect(injector.resolve(key1)).eq(1);
+      expect(() => (injector as any).resolve(key2)).throws('No provider found');
+    });
+
+    it('should export Symbol tokens and block non-exported ones', () => {
+      const key1 = Symbol('key1');
+      const key2 = Symbol('key2');
+      const exported = createInjector()
+        .provideValue(key1, 1)
+        .provideValue(key2, 2)
+        .export([key1] as const);
+      expect(exported.resolve(key1)).eq(1);
+      expect(() => (exported as any).resolve(key2)).throws('No provider found');
+    });
+
+    it('should include the Symbol description in error messages', () => {
+      const myKey = Symbol('myKey');
+      expect(() => (rootInjector as any).resolve(myKey)).throws('No provider found for "Symbol(myKey)"');
     });
   });
 });
